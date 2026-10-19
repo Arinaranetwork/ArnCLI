@@ -6,7 +6,10 @@
 
 package com.arinara.arntcli.ui.sessions
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,18 +18,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +42,7 @@ import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppListItem
 import com.arinara.arntcli.ui.components.presets.AppListItemAction
 import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
+import com.arinara.arntcli.ui.model.HostItem
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 
@@ -47,6 +54,7 @@ import com.arinara.arntcli.ui.theme.ElmsSans
 fun SessionsScreen(
     contentPadding: PaddingValues,
     activeSpaceName: String,
+    hosts: List<HostItem>,
     onAddHostClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -80,7 +88,7 @@ fun SessionsScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "4 configured hosts • 2 persistent tunnels",
+                        text = "${hosts.size} configured hosts in this workspace",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
@@ -97,49 +105,92 @@ fun SessionsScreen(
             }
         }
 
-        Text(
-            text = "Configured Remote Hosts",
-            fontFamily = ElmsSans,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            color = ElectricSlateTokens.TextPrimary
-        )
+        if (hosts.isEmpty()) {
+            // Clean Empty State
+            AppCard(
+                modifier = Modifier.fillMaxWidth(),
+                isGlow = false
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(ElectricSlateTokens.SurfaceElevated)
+                            .border(
+                                width = 1.dp,
+                                color = ElectricSlateTokens.BorderSubtle,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Dns,
+                            contentDescription = "No Hosts",
+                            tint = ElectricSlateTokens.PrimaryAccent,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
 
-        AppListItem(
-            title = "Bastion Production Bastion",
-            subtitle = "ssh root@10.0.1.1:22 • Jump Host • Ed25519",
-            leadingIcon = Icons.Outlined.Dns,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
+                    Text(
+                        text = "No Hosts Configured",
+                        fontFamily = ElmsSans,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = ElectricSlateTokens.TextPrimary
+                    )
 
-        AppListItem(
-            title = "Homelab TrueNAS SCALE",
-            subtitle = "ssh admin@192.168.1.100 • ZFS Pool • WireGuard",
-            leadingIcon = Icons.Outlined.Storage,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
+                    Text(
+                        text = "Add your remote SSH servers, Mosh endpoints, or network appliances to manage them in $activeSpaceName.",
+                        fontFamily = ElmsSans,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = ElectricSlateTokens.TextMuted,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
 
-        AppListItem(
-            title = "Edge Gateway Mikrotik Router",
-            subtitle = "ssh admin@192.168.1.1:22 • RouterOS 7.15",
-            leadingIcon = Icons.Outlined.Router,
-            leadingIconTint = ElectricSlateTokens.TextMuted,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-        AppListItem(
-            title = "Dev Workstation Linux",
-            subtitle = "ssh sepli@192.168.1.50 • Port Forward :8080",
-            leadingIcon = Icons.Outlined.Computer,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
+                    AppButton(
+                        text = "Register First Host",
+                        leadingIcon = Icons.Outlined.Add,
+                        variant = AppButtonVariant.Primary,
+                        onClick = onAddHostClick
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = "Configured Remote Hosts",
+                fontFamily = ElmsSans,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = ElectricSlateTokens.TextPrimary
+            )
+
+            hosts.forEach { host ->
+                val icon = when (host.protocol.lowercase()) {
+                    "storage", "sftp", "smb" -> Icons.Outlined.Storage
+                    "router", "gateway" -> Icons.Outlined.Router
+                    else -> Icons.Outlined.Dns
+                }
+
+                AppListItem(
+                    title = host.name,
+                    subtitle = "${host.protocol} ${host.username}@${host.address}:${host.port}",
+                    leadingIcon = icon,
+                    leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+                    action = AppListItemAction.Chevron,
+                    onClick = { }
+                )
+            }
+        }
 
         BottomClearanceSpacer()
     }

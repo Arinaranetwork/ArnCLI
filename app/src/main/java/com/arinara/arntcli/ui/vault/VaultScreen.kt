@@ -6,7 +6,10 @@
 
 package com.arinara.arntcli.ui.vault
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,19 +18,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +45,8 @@ import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppListItem
 import com.arinara.arntcli.ui.components.presets.AppListItemAction
 import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
+import com.arinara.arntcli.ui.model.CredentialType
+import com.arinara.arntcli.ui.model.VaultCredential
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 
@@ -48,7 +58,9 @@ import com.arinara.arntcli.ui.theme.ElmsSans
 fun VaultScreen(
     contentPadding: PaddingValues,
     isVaultUnlocked: Boolean,
+    credentials: List<VaultCredential>,
     onToggleVaultLock: () -> Unit,
+    onAddCredentialClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -81,7 +93,7 @@ fun VaultScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "AES-256-GCM • Argon2id (m=64M) • StrongBox TEE",
+                        text = "Argon2id (m=64M) • AES-256-GCM • Android StrongBox",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
@@ -98,8 +110,96 @@ fun VaultScreen(
             }
         }
 
+        if (credentials.isEmpty()) {
+            // Clean Empty State
+            AppCard(
+                modifier = Modifier.fillMaxWidth(),
+                isGlow = false
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(ElectricSlateTokens.SurfaceElevated)
+                            .border(
+                                width = 1.dp,
+                                color = ElectricSlateTokens.BorderSubtle,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Lock,
+                            contentDescription = "Empty Vault",
+                            tint = ElectricSlateTokens.PrimaryAccent,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Vault Keyring Is Empty",
+                        fontFamily = ElmsSans,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = ElectricSlateTokens.TextPrimary
+                    )
+
+                    Text(
+                        text = "Store SSH keys, WireGuard VPN profiles, and API tokens securely in your hardware-backed encrypted vault.",
+                        fontFamily = ElmsSans,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = ElectricSlateTokens.TextMuted,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    AppButton(
+                        text = "Add First Key",
+                        leadingIcon = Icons.Outlined.Add,
+                        variant = AppButtonVariant.Secondary,
+                        onClick = onAddCredentialClick
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = "Stored Cryptographic Credentials",
+                fontFamily = ElmsSans,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = ElectricSlateTokens.TextPrimary
+            )
+
+            credentials.forEach { cred ->
+                val icon = when (cred.type) {
+                    CredentialType.SshKey -> Icons.Outlined.Key
+                    CredentialType.WireGuardConfig -> Icons.Outlined.VpnKey
+                    CredentialType.Password -> Icons.Outlined.Password
+                    CredentialType.ApiToken -> Icons.Outlined.Lock
+                }
+
+                AppListItem(
+                    title = cred.title,
+                    subtitle = cred.description,
+                    leadingIcon = icon,
+                    leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+                    action = AppListItemAction.Chevron,
+                    onClick = { }
+                )
+            }
+        }
+
         Text(
-            text = "Hardware Keyring & Stored Credentials",
+            text = "Data Portability & Synchronization",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -107,37 +207,10 @@ fun VaultScreen(
         )
 
         AppListItem(
-            title = "id_ed25519 (Production Infrastructure)",
-            subtitle = "SSH Private Key • Ed25519 256-bit • Fingerprint: SHA256:4x8k..",
-            leadingIcon = Icons.Outlined.Key,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
-
-        AppListItem(
-            title = "wireguard-homelab.conf",
-            subtitle = "WireGuard Tunnel Profile • Endpoint: vpn.home.lan:51820",
-            leadingIcon = Icons.Outlined.VpnKey,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
-
-        AppListItem(
-            title = "Hardware Token: YubiKey 5C NFC",
-            subtitle = "FIDO2 hmac-secret & PIV 9D • Bound via NFC / USB-OTG",
-            leadingIcon = Icons.Outlined.Fingerprint,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { }
-        )
-
-        AppListItem(
             title = "Air-Gapped Vault Sync (BC-UR)",
-            subtitle = "Transmit encrypted credentials via animated QR stream",
+            subtitle = "Transmit encrypted credentials via animated QR stream without network emissions",
             leadingIcon = Icons.Outlined.QrCode,
-            leadingIconTint = ElectricSlateTokens.TextMuted,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { }
         )

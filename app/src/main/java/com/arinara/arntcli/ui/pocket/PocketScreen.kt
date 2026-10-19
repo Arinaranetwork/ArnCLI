@@ -43,6 +43,7 @@ import com.arinara.arntcli.ui.theme.ElmsSans
 @Composable
 fun PocketScreen(
     contentPadding: PaddingValues,
+    onToolSelected: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -69,7 +70,7 @@ fun PocketScreen(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Zero-setup diagnostic tools ready for instant action. Accessible from widgets and Quick Settings tiles.",
+                text = "Zero-setup diagnostic tools ready for instant action. Operates 100% offline without remote cloud dependency.",
                 fontFamily = ElmsSans,
                 fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
@@ -78,7 +79,7 @@ fun PocketScreen(
         }
 
         Text(
-            text = "Active Probes & Diagnostics",
+            text = "Diagnostic Tool Suite",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -87,56 +88,56 @@ fun PocketScreen(
 
         AppListItem(
             title = "ICMP Ping & Jitter",
-            subtitle = "Target: 1.1.1.1 • Min: 12ms Avg: 15ms Jitter: 1.2ms",
+            subtitle = "Measure round-trip latency, packet loss, and jitter to any target",
             leadingIcon = Icons.Outlined.NetworkPing,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = { onToolSelected("ping") }
         )
 
         AppListItem(
             title = "DNS Deep Resolver",
-            subtitle = "DoH & DoT • Query A, AAAA, MX, TXT, SRV, SOA records",
+            subtitle = "Query A, AAAA, MX, TXT, SRV, SOA records via standard, DoH, and DoT",
             leadingIcon = Icons.Outlined.Dns,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = { onToolSelected("dns") }
         )
 
         AppListItem(
             title = "CIDR & Subnet Calculator",
-            subtitle = "IPv4 / IPv6 netmask, wildcard, and usable address boundaries",
+            subtitle = "Calculate IPv4/IPv6 netmasks, wildcard bits, and usable IP boundaries",
             leadingIcon = Icons.Outlined.Calculate,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = { onToolSelected("subnet") }
         )
 
         AppListItem(
             title = "Wi-Fi 6E/7 Live Inspector",
-            subtitle = "Continuous 1Hz RSSI walk-test graph & channel rating",
+            subtitle = "Monitor unthrottled 1Hz RSSI signal graphs and channel interference",
             leadingIcon = Icons.Outlined.Wifi,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = { onToolSelected("wifi") }
         )
 
         AppListItem(
             title = "SSL / TLS Certificate Inspector",
-            subtitle = "Verify expiry date, cipher suite, and certificate chains",
+            subtitle = "Verify expiration dates, certificate chains, and cipher negotiation",
             leadingIcon = Icons.Outlined.Security,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = { onToolSelected("ssl") }
         )
 
         AppListItem(
             title = "Wake-on-LAN Magic Packet",
-            subtitle = "Broadcast magic packets across LAN or directed subnet IP",
+            subtitle = "Dispatch UDP magic packets across local subnets or directed IP addresses",
             leadingIcon = Icons.Outlined.Power,
             leadingIconTint = ElectricSlateTokens.TextMuted,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = { onToolSelected("wol") }
         )
 
         BottomClearanceSpacer()

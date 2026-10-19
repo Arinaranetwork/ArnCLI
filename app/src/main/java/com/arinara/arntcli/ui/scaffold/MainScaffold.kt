@@ -43,7 +43,10 @@ import com.arinara.arntcli.ui.components.presets.AppFloatingBar
 import com.arinara.arntcli.ui.components.presets.AppFloatingBarItem
 import com.arinara.arntcli.ui.components.presets.AppScreen
 import com.arinara.arntcli.ui.components.presets.AppTopBar
+import com.arinara.arntcli.ui.model.HostItem
 import com.arinara.arntcli.ui.model.Space
+import com.arinara.arntcli.ui.model.TerminalSession
+import com.arinara.arntcli.ui.model.VaultCredential
 import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
@@ -69,44 +72,32 @@ fun MainScaffold(
     modifier: Modifier = Modifier
 ) {
     var currentDestination by remember { mutableStateOf(MainDestination.Terminal) }
-    var isVaultUnlocked by remember { mutableStateOf(true) }
+    var isVaultUnlocked by remember { mutableStateOf(false) }
     var isSpaceSheetVisible by remember { mutableStateOf(false) }
 
-    val defaultSpaces = remember {
+    val initialSpaces = remember {
         listOf(
             Space(
-                id = "homelab",
-                name = "Homelab",
-                description = "Self-hosted TrueNAS, Mikrotik, and IoT appliances",
-                hostCount = 5,
-                tunnelCount = 2,
-                isVpnActive = true,
-                isSelected = true
-            ),
-            Space(
-                id = "office",
-                name = "Office Work",
-                description = "Corporate bastion and staging infrastructure",
-                hostCount = 3,
-                tunnelCount = 1,
+                id = "default",
+                name = "Default Space",
+                description = "Primary operational context workspace",
+                hostCount = 0,
+                tunnelCount = 0,
                 isVpnActive = false,
-                isSelected = false
-            ),
-            Space(
-                id = "cloud",
-                name = "Cloud Infra",
-                description = "AWS and Kubernetes multi-region clusters",
-                hostCount = 8,
-                tunnelCount = 3,
-                isVpnActive = true,
-                isSelected = false
+                isSelected = true
             )
         )
     }
 
-    var spaces by remember { mutableStateOf(defaultSpaces) }
-    var selectedSpaceId by remember { mutableStateOf("homelab") }
+    var spaces by remember { mutableStateOf(initialSpaces) }
+    var selectedSpaceId by remember { mutableStateOf("default") }
+    var hosts by remember { mutableStateOf(emptyList<HostItem>()) }
+    var credentials by remember { mutableStateOf(emptyList<VaultCredential>()) }
+    var sessions by remember { mutableStateOf(emptyList<TerminalSession>()) }
+
     val activeSpace = spaces.firstOrNull { it.id == selectedSpaceId } ?: spaces.first()
+    val spaceHosts = hosts.filter { it.spaceId == selectedSpaceId }
+    val spaceCredentials = credentials.filter { it.spaceId == selectedSpaceId }
 
     Box(modifier = modifier.fillMaxSize()) {
         AppScreen(
@@ -219,13 +210,28 @@ fun MainScaffold(
                 MainDestination.Terminal -> {
                     TerminalScreen(
                         contentPadding = contentPadding,
-                        activeSpaceName = activeSpace.name
+                        activeSpaceName = activeSpace.name,
+                        sessions = sessions,
+                        onStartLocalShell = {
+                            val newSession = TerminalSession(
+                                id = "session-${sessions.size + 1}",
+                                title = "local:sh",
+                                shell = "/bin/sh",
+                                isConnected = true,
+                                lines = listOf(
+                                    "ArnTCLI Terminal Environment [Space: ${activeSpace.name}]",
+                                    "Ready for local execution."
+                                )
+                            )
+                            sessions = sessions + newSession
+                        }
                     )
                 }
                 MainDestination.Sessions -> {
                     SessionsScreen(
                         contentPadding = contentPadding,
                         activeSpaceName = activeSpace.name,
+                        hosts = spaceHosts,
                         onAddHostClick = { }
                     )
                 }
@@ -236,7 +242,9 @@ fun MainScaffold(
                     VaultScreen(
                         contentPadding = contentPadding,
                         isVaultUnlocked = isVaultUnlocked,
-                        onToggleVaultLock = { isVaultUnlocked = !isVaultUnlocked }
+                        credentials = spaceCredentials,
+                        onToggleVaultLock = { isVaultUnlocked = !isVaultUnlocked },
+                        onAddCredentialClick = { }
                     )
                 }
                 MainDestination.Settings -> {
