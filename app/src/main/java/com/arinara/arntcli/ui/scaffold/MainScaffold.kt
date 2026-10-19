@@ -52,6 +52,8 @@ import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
+import com.arinara.arntcli.ui.pocket.PingSheet
+import com.arinara.arntcli.ui.pocket.DnsSheet
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
 import com.arinara.arntcli.ui.space.SpaceSwitcherSheet
@@ -79,6 +81,8 @@ fun MainScaffold(
     var isVaultUnlocked by remember { mutableStateOf(false) }
     var isSpaceSheetVisible by remember { mutableStateOf(false) }
     var isSubnetCalculatorVisible by remember { mutableStateOf(false) }
+    var isPingSheetVisible by remember { mutableStateOf(false) }
+    var isDnsSheetVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val processEngine = remember { LocalProcessEngine() }
@@ -279,8 +283,10 @@ fun MainScaffold(
                     PocketScreen(
                         contentPadding = contentPadding,
                         onToolSelected = { toolId ->
-                            if (toolId == "subnet") {
-                                isSubnetCalculatorVisible = true
+                            when (toolId) {
+                                "ping" -> isPingSheetVisible = true
+                                "dns" -> isDnsSheetVisible = true
+                                "subnet" -> isSubnetCalculatorVisible = true
                             }
                         }
                     )
@@ -321,6 +327,18 @@ fun MainScaffold(
         SubnetCalculatorSheet(
             visible = isSubnetCalculatorVisible,
             onDismiss = { isSubnetCalculatorVisible = false }
+        )
+
+        // ICMP Ping & Jitter Bottom Sheet
+        PingSheet(
+            visible = isPingSheetVisible,
+            onDismiss = { isPingSheetVisible = false }
+        )
+
+        // DNS Deep Resolver Bottom Sheet
+        DnsSheet(
+            visible = isDnsSheetVisible,
+            onDismiss = { isDnsSheetVisible = false }
         )
     }
 }
