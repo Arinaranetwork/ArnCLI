@@ -73,7 +73,7 @@ fun VaultScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Vault Cryptographic Security Card
+        // Vault Security Card
         AppCard(
             modifier = Modifier.fillMaxWidth(),
             isGlow = isVaultUnlocked
@@ -85,7 +85,7 @@ fun VaultScreen(
             ) {
                 Column {
                     Text(
-                        text = if (isVaultUnlocked) "Vault Active & Unlocked" else "Vault Locked",
+                        text = if (isVaultUnlocked) "Vault Unlocked" else "Vault Locked",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -93,7 +93,7 @@ fun VaultScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Argon2id (m=64M) • AES-256-GCM • Android StrongBox",
+                        text = "Encrypted • AES-256-GCM",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
@@ -144,7 +144,7 @@ fun VaultScreen(
                     }
 
                     Text(
-                        text = "Vault Keyring Is Empty",
+                        text = "Keyring Is Empty",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -152,7 +152,7 @@ fun VaultScreen(
                     )
 
                     Text(
-                        text = "Store SSH keys, WireGuard VPN profiles, and API tokens securely in your hardware-backed encrypted vault.",
+                        text = "Store SSH keys, WireGuard profiles, and API tokens.",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,

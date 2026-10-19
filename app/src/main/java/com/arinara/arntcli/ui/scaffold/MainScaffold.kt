@@ -94,7 +94,7 @@ fun MainScaffold(
             Space(
                 id = "default",
                 name = "Default Space",
-                description = "Primary operational context workspace",
+                description = "Default workspace",
                 hostCount = 0,
                 tunnelCount = 0,
                 isVpnActive = false,
@@ -117,8 +117,7 @@ fun MainScaffold(
         AppScreen(
             topBar = {
                 AppTopBar(
-                    title = "ArnTCLI",
-                    subtitle = "Network Swiss Army Knife",
+                    title = "ArnCLI",
                     actions = {
                         // Space Switcher Capsule Pill
                         Box(
@@ -189,25 +188,25 @@ fun MainScaffold(
                 AppFloatingBar {
                     AppFloatingBarItem(
                         icon = Icons.Outlined.Terminal,
-                        contentDescription = "Terminal Workspace",
+                        contentDescription = "Terminal",
                         isSelected = currentDestination == MainDestination.Terminal,
                         onClick = { currentDestination = MainDestination.Terminal }
                     )
                     AppFloatingBarItem(
                         icon = Icons.Outlined.Dns,
-                        contentDescription = "Sessions & Hosts",
+                        contentDescription = "Sessions",
                         isSelected = currentDestination == MainDestination.Sessions,
                         onClick = { currentDestination = MainDestination.Sessions }
                     )
                     AppFloatingBarItem(
                         icon = Icons.Outlined.Build,
-                        contentDescription = "Pocket Tool Belt",
+                        contentDescription = "Pocket",
                         isSelected = currentDestination == MainDestination.Pocket,
                         onClick = { currentDestination = MainDestination.Pocket }
                     )
                     AppFloatingBarItem(
                         icon = Icons.Outlined.Lock,
-                        contentDescription = "Cryptographic Vault",
+                        contentDescription = "Vault",
                         isSelected = currentDestination == MainDestination.Vault,
                         onClick = { currentDestination = MainDestination.Vault }
                     )
@@ -233,8 +232,7 @@ fun MainScaffold(
                                 shell = processEngine.shellExecutable,
                                 isConnected = true,
                                 lines = listOf(
-                                    "ArnTCLI Terminal Environment [Space: ${activeSpace.name}]",
-                                    "Local shell ready (${processEngine.shellExecutable}). Ready for execution."
+                                    "ArnCLI local shell (${processEngine.shellExecutable})"
                                 )
                             )
                             sessions = sessions + newSession

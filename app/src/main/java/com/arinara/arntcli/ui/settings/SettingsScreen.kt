@@ -57,14 +57,14 @@ fun SettingsScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Branding Banner Card
+        // Preferences Header Card
         AppCard(
             modifier = Modifier.fillMaxWidth(),
             isGlow = true
         ) {
             Column {
                 Text(
-                    text = "ArnTCLI Settings",
+                    text = "Preferences",
                     fontFamily = ElmsSans,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
@@ -72,7 +72,7 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Arinara Network • Electric Slate Design System • Elms Sans",
+                    text = "Application configuration and environment settings",
                     fontFamily = ElmsSans,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
@@ -82,7 +82,7 @@ fun SettingsScreen(
         }
 
         Text(
-            text = "Visual System & Terminal Appearance",
+            text = "Appearance",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -90,8 +90,8 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "Theme: Electric Slate Dark",
-            subtitle = "Canvas #0D1117 • Surface #161C26 • Accent #7A5AF8",
+            title = "Theme",
+            subtitle = "Electric Slate Dark",
             leadingIcon = Icons.Outlined.Palette,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -99,8 +99,8 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "Typography Hierarchy",
-            subtitle = "Elms Sans (UI) & Monospace (Terminal Output)",
+            title = "Terminal Font",
+            subtitle = "System Monospace",
             leadingIcon = Icons.Outlined.TextFields,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -108,7 +108,7 @@ fun SettingsScreen(
         )
 
         Text(
-            text = "Profiles, Import & Export",
+            text = "Workspace Profiles",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -116,8 +116,8 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "Export Workspace Profiles",
-            subtitle = "Export Spaces, hosts, and preferences to encrypted JSON file",
+            title = "Export Profiles",
+            subtitle = "Export spaces, hosts, and preferences to encrypted file",
             leadingIcon = Icons.Outlined.Upload,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -125,8 +125,8 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "Import Workspace Profiles",
-            subtitle = "Restore terminal environments, color schemes, and hosts",
+            title = "Import Profiles",
+            subtitle = "Restore workspace environments and hosts",
             leadingIcon = Icons.Outlined.Download,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -134,7 +134,7 @@ fun SettingsScreen(
         )
 
         Text(
-            text = "Privacy & Verification",
+            text = "Security & Privacy",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -142,8 +142,8 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "Zero Cloud & Telemetry Guarantee",
-            subtitle = "All operations run 100% locally on-device. Zero network tracking.",
+            title = "Telemetry",
+            subtitle = "Disabled (On-device only)",
             leadingIcon = Icons.Outlined.Security,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -151,8 +151,8 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "About ArnTCLI v0.1.0",
-            subtitle = "Arinara Network • VerifyAndroidRulesTask Active",
+            title = "About ArnCLI",
+            subtitle = "Version 0.2.0 Beta",
             leadingIcon = Icons.Outlined.Info,
             leadingIconTint = ElectricSlateTokens.TextMuted,
             action = AppListItemAction.Chevron,

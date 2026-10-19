@@ -18,3 +18,11 @@
 ### Fixed
 - Fixed IP address regex parsing in ICMP ping outputs across Linux and Windows formats.
 - Handled Server Name Indication (SNI) host parameter configuration for virtual-hosted domain inspection.
+
+## [0.2.1] - 2026-10-19
+
+### Changed
+- Removed redundant marketing clutter, filler descriptions ("100% offline", "Zero-setup...", "Zero Cloud & Telemetry Guarantee"), and internal design system notes across `TerminalScreen`, `PocketScreen`, `SettingsScreen`, `VaultScreen`, `SessionsScreen`, `SpaceSwitcherSheet`, and `MainScaffold`.
+- Removed redundant operational status card from terminal view for improved viewport signal density.
+- Streamlined diagnostic tool subtitles and headers to concise, functional labels.
+

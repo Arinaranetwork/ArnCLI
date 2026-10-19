@@ -133,7 +133,7 @@ fun TerminalScreen(
                     )
 
                     Text(
-                        text = "Space: $activeSpaceName\nSpawn a local shell process or connect to a remote host.",
+                        text = "Spawn a local shell process or connect to a host.",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
@@ -222,7 +222,7 @@ fun TerminalScreen(
                         }
 
                         Text(
-                            text = if (currentSession.isConnected) "Online • Offline-First" else "Disconnected",
+                            text = if (currentSession.isConnected) "Connected" else "Disconnected",
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Normal,
                             fontSize = 11.sp,
@@ -390,7 +390,7 @@ fun TerminalScreen(
 
             // Quick Diagnostic Commands
             Text(
-                text = "Quick Diagnostic Commands",
+                text = "Quick Commands",
                 fontFamily = ElmsSans,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
@@ -439,56 +439,6 @@ fun TerminalScreen(
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp,
                             color = ElectricSlateTokens.TextPrimary
-                        )
-                    }
-                }
-            }
-
-            // Operational Status Card
-            AppCard(
-                modifier = Modifier.fillMaxWidth(),
-                isGlow = false
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "Terminal Session Manager",
-                            fontFamily = ElmsSans,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = ElectricSlateTokens.TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${sessions.size} active sessions • Space: $activeSpaceName",
-                            fontFamily = ElmsSans,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 12.sp,
-                            color = ElectricSlateTokens.TextMuted
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(ElectricSlateTokens.SurfaceElevated)
-                            .border(
-                                width = 1.dp,
-                                color = ElectricSlateTokens.BorderSubtle,
-                                shape = RoundedCornerShape(999.dp)
-                            )
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "100% Offline",
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 11.sp,
-                            color = ElectricSlateTokens.PrimaryAccent
                         )
                     }
                 }

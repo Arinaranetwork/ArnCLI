@@ -52,15 +52,7 @@ fun SpaceSwitcherSheet(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "Isolated operational environments with dedicated hosts, credentials, and network tunnels.",
-                fontFamily = ElmsSans,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                color = ElectricSlateTokens.TextMuted
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
 
             spaces.forEach { space ->
                 val isSelected = space.id == selectedSpaceId

@@ -88,7 +88,7 @@ fun SessionsScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${hosts.size} configured hosts in this workspace",
+                        text = "${hosts.size} configured hosts",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
@@ -147,7 +147,7 @@ fun SessionsScreen(
                     )
 
                     Text(
-                        text = "Add your remote SSH servers, Mosh endpoints, or network appliances to manage them in $activeSpaceName.",
+                        text = "Add SSH, Mosh, or serial endpoints to this space.",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,

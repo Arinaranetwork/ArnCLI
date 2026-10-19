@@ -25,6 +25,7 @@ Phase 2 - CoreTerminalAndPocket [Completed]
 - [x] Task 12: Implement IcmpPingEngine and interactive PingSheet in Pocket module - Phase 2
 - [x] Task 13: Implement DnsResolverEngine and interactive DnsSheet in Pocket module - Phase 2
 - [x] Task 14: Implement SslInspectorEngine and SslInspectorSheet in Pocket module - Phase 2
+- [x] Task 15: Clean up verbose and redundant descriptions across UI screens - Phase 2
 
 ## In Progress
 

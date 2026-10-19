@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppListItem
 import com.arinara.arntcli.ui.components.presets.AppListItemAction
 import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
@@ -56,39 +55,17 @@ fun PocketScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Pocket Header Card
-        AppCard(
-            modifier = Modifier.fillMaxWidth(),
-            isGlow = true
-        ) {
-            Text(
-                text = "Pocket Tool Belt",
-                fontFamily = ElmsSans,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = ElectricSlateTokens.TextPrimary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Zero-setup diagnostic tools ready for instant action. Operates 100% offline without remote cloud dependency.",
-                fontFamily = ElmsSans,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                color = ElectricSlateTokens.TextMuted
-            )
-        }
-
         Text(
-            text = "Diagnostic Tool Suite",
+            text = "Diagnostic Tools",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             color = ElectricSlateTokens.TextPrimary
         )
 
         AppListItem(
             title = "ICMP Ping & Jitter",
-            subtitle = "Measure round-trip latency, packet loss, and jitter to any target",
+            subtitle = "Measure latency, packet loss, and jitter",
             leadingIcon = Icons.Outlined.NetworkPing,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -96,8 +73,8 @@ fun PocketScreen(
         )
 
         AppListItem(
-            title = "DNS Deep Resolver",
-            subtitle = "Query A, AAAA, MX, TXT, SRV, SOA records via standard, DoH, and DoT",
+            title = "DNS Resolver",
+            subtitle = "Query A, AAAA, MX, TXT, SRV, SOA records",
             leadingIcon = Icons.Outlined.Dns,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -106,7 +83,7 @@ fun PocketScreen(
 
         AppListItem(
             title = "CIDR & Subnet Calculator",
-            subtitle = "Calculate IPv4/IPv6 netmasks, wildcard bits, and usable IP boundaries",
+            subtitle = "Calculate netmasks, broadcast, and usable IP ranges",
             leadingIcon = Icons.Outlined.Calculate,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -114,8 +91,8 @@ fun PocketScreen(
         )
 
         AppListItem(
-            title = "Wi-Fi 6E/7 Live Inspector",
-            subtitle = "Monitor unthrottled 1Hz RSSI signal graphs and channel interference",
+            title = "Wi-Fi Inspector",
+            subtitle = "Signal strength graphs and channel interference",
             leadingIcon = Icons.Outlined.Wifi,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -123,8 +100,8 @@ fun PocketScreen(
         )
 
         AppListItem(
-            title = "SSL / TLS Certificate Inspector",
-            subtitle = "Verify expiration dates, certificate chains, and cipher negotiation",
+            title = "SSL / TLS Inspector",
+            subtitle = "Certificate chains, expiration, and cipher negotiation",
             leadingIcon = Icons.Outlined.Security,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -132,8 +109,8 @@ fun PocketScreen(
         )
 
         AppListItem(
-            title = "Wake-on-LAN Magic Packet",
-            subtitle = "Dispatch UDP magic packets across local subnets or directed IP addresses",
+            title = "Wake-on-LAN",
+            subtitle = "Send UDP magic packets to target MAC",
             leadingIcon = Icons.Outlined.Power,
             leadingIconTint = ElectricSlateTokens.TextMuted,
             action = AppListItemAction.Chevron,
