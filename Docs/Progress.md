@@ -19,6 +19,7 @@ Phase 1 - SetupAndInfrastructure [Completed]
 - [x] Task 7: Build UI Scaffold with Fotara reference branding and presets - Phase 1
 
 ## In Progress
+- [ ] Task 8: Package release APK and publish standalone release on GitHub repo ArnCLI without source code - Phase 1
 
 ## Pending
 

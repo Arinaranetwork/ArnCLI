@@ -32,6 +32,9 @@ Centralized contracts and serializers for exporting and importing terminal envir
 ### UI Scaffold & Fotara Reference Branding
 Implementation of the central application scaffold (`MainScaffold`) reflecting Fotara reference branding and Electric Slate tokens. Encompasses persistent bottom floating bar navigation (`AppFloatingBar`) across five primary modules (Terminal, Sessions, Pocket, Vault, Settings), interactive Space Switcher bottom sheet (`SpaceSwitcherSheet`), Vault security status indicator, and screen containers utilizing standardized presets.
 
+### Standalone Release Distribution Scaffolding
+Packaging shippable pre-release binaries (`ArnCLI_0.1.0_Beta.apk` and `ArnTCLI_0.1.0_Beta.apk`) into `/Output/Release/` alongside SHA-256 integrity checksums for standalone distribution via GitHub release without source repository upload.
+
 ### Master Roadmap Architecture Specification
 Formulation and documentation of the comprehensive v0.1 to v10.0 master roadmap covering the 3 Core Pillars (Space, Vault, Pocket), 8 functional modules (Connect, NetTools, DevLab, Tunnel, Monitor, Automation, Copilot, Knowledge), Android rootless platform engineering mitigations, zero-server offline design, and competitive developer ergonomics.
 
