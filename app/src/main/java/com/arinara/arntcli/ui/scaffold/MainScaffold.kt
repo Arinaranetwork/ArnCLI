@@ -47,7 +47,11 @@ import com.arinara.arntcli.ui.model.HostItem
 import com.arinara.arntcli.ui.model.Space
 import com.arinara.arntcli.ui.model.TerminalSession
 import com.arinara.arntcli.ui.model.VaultCredential
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.pocket.PocketScreen
+import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
 import com.arinara.arntcli.ui.space.SpaceSwitcherSheet
@@ -74,6 +78,10 @@ fun MainScaffold(
     var currentDestination by remember { mutableStateOf(MainDestination.Terminal) }
     var isVaultUnlocked by remember { mutableStateOf(false) }
     var isSpaceSheetVisible by remember { mutableStateOf(false) }
+    var isSubnetCalculatorVisible by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val processEngine = remember { LocalProcessEngine() }
 
     val initialSpaces = remember {
         listOf(
@@ -216,14 +224,46 @@ fun MainScaffold(
                             val newSession = TerminalSession(
                                 id = "session-${sessions.size + 1}",
                                 title = "local:sh",
-                                shell = "/bin/sh",
+                                shell = processEngine.shellExecutable,
                                 isConnected = true,
                                 lines = listOf(
                                     "ArnTCLI Terminal Environment [Space: ${activeSpace.name}]",
-                                    "Ready for local execution."
+                                    "Local shell ready (${processEngine.shellExecutable}). Ready for execution."
                                 )
                             )
                             sessions = sessions + newSession
+                        },
+                        onExecuteCommand = { sessionId, cmd ->
+                            if (cmd == "clear") {
+                                sessions = sessions.map { s ->
+                                    if (s.id == sessionId) s.copy(lines = emptyList()) else s
+                                }
+                            } else {
+                                sessions = sessions.map { s ->
+                                    if (s.id == sessionId) s.copy(lines = (s.lines + "$ $cmd").takeLast(500)) else s
+                                }
+                                coroutineScope.launch {
+                                    try {
+                                        processEngine.executeStreaming(cmd).collect { outputLine ->
+                                            sessions = sessions.map { s ->
+                                                if (s.id == sessionId) {
+                                                    s.copy(lines = (s.lines + outputLine).takeLast(500))
+                                                } else s
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        val err = "Error: ${e.message ?: "Execution failed"}"
+                                        sessions = sessions.map { s ->
+                                            if (s.id == sessionId) {
+                                                s.copy(lines = (s.lines + err).takeLast(500))
+                                            } else s
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        onCloseSession = { sessionId ->
+                            sessions = sessions.filterNot { it.id == sessionId }
                         }
                     )
                 }
@@ -236,7 +276,14 @@ fun MainScaffold(
                     )
                 }
                 MainDestination.Pocket -> {
-                    PocketScreen(contentPadding = contentPadding)
+                    PocketScreen(
+                        contentPadding = contentPadding,
+                        onToolSelected = { toolId ->
+                            if (toolId == "subnet") {
+                                isSubnetCalculatorVisible = true
+                            }
+                        }
+                    )
                 }
                 MainDestination.Vault -> {
                     VaultScreen(
@@ -268,6 +315,12 @@ fun MainScaffold(
                 spaces = spaces.map { it.copy(isSelected = it.id == chosen.id) }
             },
             onAddSpaceClick = { isSpaceSheetVisible = false }
+        )
+
+        // Subnet & CIDR Calculator Bottom Sheet
+        SubnetCalculatorSheet(
+            visible = isSubnetCalculatorVisible,
+            onDismiss = { isSubnetCalculatorVisible = false }
         )
     }
 }

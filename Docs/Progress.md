@@ -2,12 +2,13 @@
 Last Updated: 2026-10-19
 
 ## Current Phase
-Phase 1 - SetupAndInfrastructure [Completed]
+Phase 2 - CoreTerminalAndPocket [In Progress]
 
 ## Phases
-| Phase | Name                  | Status    |
-|-------|-----------------------|-----------|
-| 1     | SetupAndInfrastructure| Completed |
+| Phase | Name                  | Status      |
+|-------|-----------------------|-------------|
+| 1     | SetupAndInfrastructure| Completed   |
+| 2     | CoreTerminalAndPocket | In Progress |
 
 ## Completed
 - [x] Task 1: Initialize Gradle build structure, settings, dependencies, and VerifyAndroidRulesTask - Phase 1
@@ -19,6 +20,8 @@ Phase 1 - SetupAndInfrastructure [Completed]
 - [x] Task 7: Build UI Scaffold with Fotara reference branding and presets - Phase 1
 - [x] Task 8: Package release APK and publish standalone release on GitHub repo ArnCLI without source code - Phase 1
 - [x] Task 9: Remove mock simulation data and establish real-data ready scaffold architecture - Phase 1
+- [x] Task 10: Implement LocalProcessEngine for real shell execution and non-blocking streaming - Phase 2
+- [x] Task 11: Implement SubnetCalculator engine and SubnetCalculatorSheet in Pocket module - Phase 2
 
 ## In Progress
 

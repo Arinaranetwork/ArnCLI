@@ -54,6 +54,14 @@ import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
 
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+
 /**
  * TerminalScreen - Active terminal emulator session workspace.
  * Hosted within AppScreen scaffold providing safeDrawing and statusBars insets.
@@ -64,11 +72,14 @@ fun TerminalScreen(
     activeSpaceName: String,
     sessions: List<TerminalSession>,
     onStartLocalShell: () -> Unit,
+    onExecuteCommand: (sessionId: String, command: String) -> Unit = { _, _ -> },
+    onCloseSession: (sessionId: String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedSessionIndex by remember { mutableIntStateOf(0) }
     var commandInput by remember { mutableStateOf("") }
     val auxiliaryKeys = listOf("ESC", "TAB", "CTRL", "ALT", "|", "/", "~", "-", ">")
+    val quickCommands = listOf("uname -a", "id", "pwd", "date", "uptime", "clear")
 
     Column(
         modifier = modifier
@@ -143,12 +154,24 @@ fun TerminalScreen(
         } else {
             val safeIndex = selectedSessionIndex.coerceIn(0, sessions.size - 1)
             val currentSession = sessions[safeIndex]
+            val terminalScrollState = rememberScrollState()
+
+            LaunchedEffect(currentSession.lines.size) {
+                terminalScrollState.animateScrollTo(terminalScrollState.maxValue)
+            }
 
             // Session Quick Tabs
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                item {
+                    AppPillChip(
+                        label = "+ New Shell",
+                        isSelected = false,
+                        onClick = onStartLocalShell
+                    )
+                }
                 items(sessions.indices.toList()) { index ->
                     AppPillChip(
                         label = sessions[index].title,
@@ -214,6 +237,7 @@ fun TerminalScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
+                            .verticalScroll(terminalScrollState)
                     ) {
                         if (currentSession.lines.isEmpty()) {
                             Text(
@@ -240,13 +264,35 @@ fun TerminalScreen(
                             )
                         } else {
                             currentSession.lines.forEach { line ->
-                                Text(
-                                    text = line,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontWeight = FontWeight.Normal,
-                                    fontSize = 12.sp,
-                                    color = ElectricSlateTokens.TextPrimary
-                                )
+                                if (line.startsWith("$ ")) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = "$",
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = ElectricSlateTokens.PrimaryAccent
+                                        )
+                                        Text(
+                                            text = line.removePrefix("$ "),
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = 12.sp,
+                                            color = ElectricSlateTokens.TextPrimary
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = line,
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 12.sp,
+                                        color = if (line.startsWith("Error:") || line.startsWith("sh: ") || line.contains("not found")) ElectricSlateTokens.Destructive else ElectricSlateTokens.TextPrimary
+                                    )
+                                }
                             }
                         }
                     }
@@ -262,7 +308,7 @@ fun TerminalScreen(
                                 color = ElectricSlateTokens.BorderSubtle,
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -281,12 +327,39 @@ fun TerminalScreen(
                                     fontSize = 14.sp,
                                     color = ElectricSlateTokens.PrimaryAccent
                                 )
-                                Text(
-                                    text = if (commandInput.isEmpty()) "Enter command..." else commandInput,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontWeight = FontWeight.Normal,
-                                    fontSize = 12.sp,
-                                    color = if (commandInput.isEmpty()) ElectricSlateTokens.TextMuted else ElectricSlateTokens.TextPrimary
+                                BasicTextField(
+                                    value = commandInput,
+                                    onValueChange = { commandInput = it },
+                                    singleLine = true,
+                                    textStyle = TextStyle(
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 12.sp,
+                                        color = ElectricSlateTokens.TextPrimary
+                                    ),
+                                    cursorBrush = SolidColor(ElectricSlateTokens.PrimaryAccent),
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                                    keyboardActions = KeyboardActions(
+                                        onSend = {
+                                            if (commandInput.isNotBlank()) {
+                                                onExecuteCommand(currentSession.id, commandInput.trim())
+                                                commandInput = ""
+                                            }
+                                        }
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        if (commandInput.isEmpty()) {
+                                            Text(
+                                                text = "Enter command...",
+                                                fontFamily = FontFamily.Monospace,
+                                                fontWeight = FontWeight.Normal,
+                                                fontSize = 12.sp,
+                                                color = ElectricSlateTokens.TextMuted
+                                            )
+                                        }
+                                        innerTextField()
+                                    },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
 
@@ -296,7 +369,10 @@ fun TerminalScreen(
                                     .clip(CircleShape)
                                     .background(ElectricSlateTokens.PrimaryAccent)
                                     .jigglePressClickable {
-                                        commandInput = ""
+                                        if (commandInput.isNotBlank()) {
+                                            onExecuteCommand(currentSession.id, commandInput.trim())
+                                            commandInput = ""
+                                        }
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -309,6 +385,30 @@ fun TerminalScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // Quick Diagnostic Commands
+            Text(
+                text = "Quick Diagnostic Commands",
+                fontFamily = ElmsSans,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = ElectricSlateTokens.TextPrimary
+            )
+
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(quickCommands) { cmd ->
+                    AppPillChip(
+                        label = cmd,
+                        isSelected = false,
+                        onClick = {
+                            onExecuteCommand(currentSession.id, cmd)
+                        }
+                    )
                 }
             }
 
