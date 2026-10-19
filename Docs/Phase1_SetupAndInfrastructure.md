@@ -29,6 +29,12 @@ Full integration of the Elms Sans font family, Electric Slate dark color palette
 ### Import & Export Scaffolding
 Centralized contracts and serializers for exporting and importing terminal environment profiles, color palettes, and workspace configurations cleanly to and from JSON/file descriptors.
 
+### UI Scaffold & Fotara Reference Branding
+Implementation of the central application scaffold (`MainScaffold`) reflecting Fotara reference branding and Electric Slate tokens. Encompasses persistent bottom floating bar navigation (`AppFloatingBar`) across five primary modules (Terminal, Sessions, Pocket, Vault, Settings), interactive Space Switcher bottom sheet (`SpaceSwitcherSheet`), Vault security status indicator, and screen containers utilizing standardized presets.
+
+### Master Roadmap Architecture Specification
+Formulation and documentation of the comprehensive v0.1 to v10.0 master roadmap covering the 3 Core Pillars (Space, Vault, Pocket), 8 functional modules (Connect, NetTools, DevLab, Tunnel, Monitor, Automation, Copilot, Knowledge), Android rootless platform engineering mitigations, zero-server offline design, and competitive developer ergonomics.
+
 ## UI Mockup
 ```
 +------------------------------------------+
@@ -67,3 +73,4 @@ Centralized contracts and serializers for exporting and importing terminal envir
 - Design tokens, spring physics, and strings configured cleanly.
 - `app/src/main/AndroidManifest.xml` and `MainActivity` properly set up.
 - Project compiles cleanly and passes `verifyAndroidRules`.
+- `Docs/Roadmap.md` established with complete v0.1–v10.0 specifications, zero-cloud architecture, and Android platform workarounds.
