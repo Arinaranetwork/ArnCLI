@@ -13,6 +13,8 @@ Implement ArnTCLI's foundational functional capabilities: an on-device local Lin
 - Interactive Ping UI (`PingSheet`) in Pocket with target presets, continuous stream, and live metric badges.
 - Native DNS Deep Resolver (`DnsResolverEngine`) parsing IPv4 (A), IPv6 (AAAA), and reverse PTR records.
 - Interactive DNS UI (`DnsSheet`) in Pocket with hostname presets and record breakdown.
+- Pure on-device SSL/TLS Certificate Inspector (`SslInspectorEngine`) parsing remote X.509 certificate chains, SANs, validity windows, and TLS negotiation cipher suites.
+- Interactive SSL UI (`SslInspectorSheet`) in Pocket with host/port presets, certificate status pills, and chain hierarchy.
 
 ## Out Of Scope
 - Remote SSH v2 network socket connection (scheduled in v0.3 / Phase 3).
@@ -48,6 +50,14 @@ Pure on-device DNS resolution tool:
 - Reverse DNS lookup (PTR) for IP-to-hostname mapping
 - Measures resolution round-trip latency in milliseconds
 
+### Pocket SSL / TLS Certificate Inspector
+On-device X.509 certificate validation:
+- Extracts Subject Common Name, Organization, Issuer authority, and validity dates
+- Calculates days remaining and expiration state
+- Extracts Subject Alternative Names (SANs)
+- Reports negotiated TLS protocol version and active cipher suite
+- Computes SHA-256 certificate thumbprint
+
 ## UI Mockup
 ```
 +-------------------------------------------------------+
@@ -80,5 +90,6 @@ Pure on-device DNS resolution tool:
 - `SubnetCalculator` mathematically computes correct network parameters across /8, /16, /24, /29, /30, and /32 subnets.
 - `IcmpPingEngine` streams sequential ping samples and calculates correct min/avg/max/loss metrics.
 - `DnsResolverEngine` resolves valid hostnames to IPv4/IPv6 addresses and returns clear errors on invalid domains.
+- `SslInspectorEngine` validates TLS certificates, extracts subject/issuer and SANs, and measures validity window.
 - UI passes `./gradlew verifyAndroidRules` with 0 violations.
 - `./gradlew testDebugUnitTest` passes all test cases.

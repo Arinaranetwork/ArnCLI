@@ -24,6 +24,7 @@ Phase 2 - CoreTerminalAndPocket [In Progress]
 - [x] Task 11: Implement SubnetCalculator engine and SubnetCalculatorSheet in Pocket module - Phase 2
 - [x] Task 12: Implement IcmpPingEngine and interactive PingSheet in Pocket module - Phase 2
 - [x] Task 13: Implement DnsResolverEngine and interactive DnsSheet in Pocket module - Phase 2
+- [x] Task 14: Implement SslInspectorEngine and SslInspectorSheet in Pocket module - Phase 2
 
 ## In Progress
 

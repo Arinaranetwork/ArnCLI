@@ -54,6 +54,7 @@ import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
 import com.arinara.arntcli.ui.pocket.PingSheet
 import com.arinara.arntcli.ui.pocket.DnsSheet
+import com.arinara.arntcli.ui.pocket.SslInspectorSheet
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
 import com.arinara.arntcli.ui.space.SpaceSwitcherSheet
@@ -83,6 +84,7 @@ fun MainScaffold(
     var isSubnetCalculatorVisible by remember { mutableStateOf(false) }
     var isPingSheetVisible by remember { mutableStateOf(false) }
     var isDnsSheetVisible by remember { mutableStateOf(false) }
+    var isSslInspectorVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val processEngine = remember { LocalProcessEngine() }
@@ -287,6 +289,7 @@ fun MainScaffold(
                                 "ping" -> isPingSheetVisible = true
                                 "dns" -> isDnsSheetVisible = true
                                 "subnet" -> isSubnetCalculatorVisible = true
+                                "ssl" -> isSslInspectorVisible = true
                             }
                         }
                     )
@@ -339,6 +342,12 @@ fun MainScaffold(
         DnsSheet(
             visible = isDnsSheetVisible,
             onDismiss = { isDnsSheetVisible = false }
+        )
+
+        // SSL / TLS Certificate Inspector Bottom Sheet
+        SslInspectorSheet(
+            visible = isSslInspectorVisible,
+            onDismiss = { isSslInspectorVisible = false }
         )
     }
 }
