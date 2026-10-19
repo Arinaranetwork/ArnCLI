@@ -1,13 +1,25 @@
-# Master Roadmap - ArnTCLI
+# Master Roadmap - ArnTCLI (v0.1 - v10.0)
 Last Updated: 2026-10-19
 Tagline: *"Your network, in your pocket."*
 Archetype: Network Swiss Army Knife (Connect, Inspect, Troubleshoot, Manage)
+Architecture Mode: 100% Offline-First, Zero Forced Cloud, Zero Local AI Weight
 
 ---
 
-## 1. Product Vision & Architectural Pillars
+## 1. Executive Summary & Core Philosophy
 
-ArnTCLI is not merely a terminal emulator; it is an all-in-one mobile workstation for network engineers, system administrators, homelab enthusiasts, and IoT developers. It consolidates fragmented utilities (SSH/Termius, Fing LAN discovery, WiFiman, PingTools, Postman mini, WireGuard) into a unified, tactile **Electric Slate** experience.
+ArnTCLI is a mobile infrastructure workstation and network Swiss Army knife built for Android. Rather than a fragmented collection of ad-supported utilities or subscription-gated terminal apps, ArnTCLI unifies remote access, low-level network diagnostics, development protocol labs, cryptographic key management, and agentless monitoring into a singular, tactile **Electric Slate** interface.
+
+### The Anti-Bloat, Zero-Cloud Guarantee
+Most modern network and terminal tools have alienated power users through three anti-patterns:
+1. **Forced Cloud & Telemetry**: Termius and Fing force account creation, cloud telemetry, and remote credential storage, creating severe security and data-sovereignty liabilities.
+2. **Subscription Fatigue**: Basic features like port forwarding, snippet sharing, and SFTP are locked behind \$10–\$15/month subscriptions.
+3. **Heavy AI Hype & Resource Drain**: Forcing multi-gigabyte local LLM runtimes or cloud AI proxies on mobile drains battery, slows responsiveness, and risks sending sensitive network credentials off-device.
+
+**ArnTCLI's Architecture Core:**
+- **Zero Cloud Requirement**: Every protocol engine, cryptographic vault, and diagnostic probe operates 100% locally on-device.
+- **Deterministic Heuristics Over AI Gimmicks**: Diagnostic conclusions ("Why is my network slow?", "Why did the TLS handshake fail?") use deterministic state-machine analyzers and rule-based network tree inspectors—giving instant, reliable, battery-friendly answers without any LLM server or on-device neural model.
+- **Air-Gapped Multi-Device Sync**: Vault sync operates via animated QR codes (BC-UR / Luby Transform fountain codes) or encrypted local JSON files—zero cloud relay required.
 
 ```mermaid
 graph TD
@@ -17,14 +29,14 @@ graph TD
         Pocket["3. Pocket\nZero-Setup Quick Tools\n(Ping, DNS, Port Scan, Subnet Calc)"]
     end
 
-    subgraph Modules ["Feature Modules"]
-        Connect["🔌 Connect\nSSH, Mosh, Telnet, Serial\nRDP, VNC, SFTP, SMB, S3\nDB Tunnel & K8s/Docker"]
-        NetTools["🛰️ Network Tools\nPing, Traceroute, MTR\nLAN Discovery, Wi-Fi Analyzer\nPacket Capture (pcap), WoL"]
-        DevLab["🧪 Dev & Protocol Lab\nHTTP/GraphQL, WebSocket\nMQTT, gRPC, BLE, Modbus"]
-        Tunnel["🔐 Tunnel & Privacy\nWireGuard, OpenVPN, Tailscale\nPort Forwarding & Reverse Proxy"]
-        Monitor["📊 Monitor & Alert\nAgentless Server Dashboard\nUptime Checks, SSL Expiry"]
-        Automation["⚙️ Automation\nCross-Module Workflows\nScheduled Triggers, Multi-Exec"]
-        Copilot["🤖 AI Copilot\nOpt-In Diagnostic Assistant\nError & Log Summarizer"]
+    subgraph Modules ["8 Feature Modules"]
+        Connect["🔌 Connect\nSSH, Mosh, Telnet, Serial\nRDP, VNC, SFTP, SMB, S3\nDB Wire Tunnels, Docker/K8s"]
+        NetTools["🛰️ Network Tools\nPing, Traceroute, MTR\nLAN Discovery, Wi-Fi Analyzer\nRootless PCAP, WoL, SSL"]
+        DevLab["🧪 Dev & Protocol Lab\nMini-Postman HTTP, WebSocket\nMQTT, gRPC, BLE, Modbus"]
+        Tunnel["🔐 Tunnel & Privacy\nWireGuard, OpenVPN, Tailscale\nPersistent Port Forwarding"]
+        Monitor["📊 Monitor & Alert\nAgentless Server Dashboard\nUptime Watchdog, SSL Expiry"]
+        Automation["⚙️ Automation\nCross-Module DAG Workflows\nCron Triggers, Multi-Exec"]
+        Copilot["🤖 Diagnostic Copilot\nRule-Based Error Explainer\nDeterministic Root-Cause Engine"]
         Knowledge["📝 Knowledge\nDevice Markdown Notes\nSession Recordings & Topology"]
     end
 
@@ -39,20 +51,20 @@ graph TD
 
 ---
 
-## 2. The Three Core Pillars
+## 2. The Three Architectural Pillars
 
 ### Pillar 1: Space (Contextual Workspace)
-A Space represents an isolated operational environment (e.g., *"Homelab"*, *"Client Corp"*, *"Office Work"*, *"Smart Home IoT"*).
-- **Environment Isolation**: Unique hosts, devices, network tunnels, scripts, markdown notes, and dashboards per Space.
+A Space represents an isolated operational boundary (e.g., *"Homelab"*, *"Client Corp"*, *"Office Work"*, *"Smart Home IoT"*).
+- **Environment Isolation**: Unique hosts, devices, network tunnels, snippets, markdown notes, and dashboards per Space.
 - **Context-Bound Networking**: Auto-connect specific WireGuard/OpenVPN profiles or SOCKS proxies upon opening a Space; auto-disconnect upon leaving.
 - **Privacy Controls**: Supports isolated personal spaces or encrypted team-shared spaces with fine-grained access tokens.
 
 ### Pillar 2: Vault (End-to-End Encrypted Keyring)
 A zero-knowledge encrypted credential repository serving every module in the application.
-- **Unified Credential Storage**: SSH private keys (RSA, Ed25519), passwords, API tokens, X.509 certificates, `.ovpn` profiles, WireGuard keys, and TOTP 2FA seeds.
+- **Unified Credential Storage**: SSH private keys (RSA 2048-4096, Ed25519), passwords, API tokens, X.509 certificates, `.ovpn` profiles, WireGuard keys, and TOTP 2FA seeds.
 - **Single-Source Authentication**: Save a credential once; deploy it across SSH, SFTP, RDP, SMB, HTTP client, and database tunnels seamlessly.
-- **Hardware & Biometric Security**: Unlocked via Android Biometrics (Fingerprint / Face Unlock), hardware keys (YubiKey over NFC/USB-OTG), and configurable auto-lock timers.
-- **Strict Isolation**: Segregated personal and team vaults per Space. Zero Vault keys or credentials are ever exposed to the AI Copilot.
+- **Hardware & Biometric Security**: Unlocked via Android Keystore + BiometricPrompt (`CryptoObject`), hardware security keys (YubiKey over NFC/USB-OTG via FIDO2/PIV), and configurable auto-lock timers.
+- **Zero-Cloud Air-Gapped Sync**: Synchronize vaults across devices using animated high-density QR codes (BC-UR format with Luby Transform fountain codes) or client-side encrypted JSON payloads.
 
 ### Pillar 3: Pocket (Instant Utility Tool Belt)
 Zero-configuration diagnostic toolbox accessible instantly without creating a Space or configuring credentials.
@@ -61,87 +73,113 @@ Zero-configuration diagnostic toolbox accessible instantly without creating a Sp
 
 ---
 
-## 3. Comprehensive Feature Modules
+## 3. Developer Standards & Android Rootless Platform Engineering
 
-### 🔌 Connect (Remote Access & Storage)
-- **Terminal Protocols**: SSH v2 (with agent forwarding, jump hosts, X11 forwarding), Mosh (high-latency resilience), Telnet, and raw Serial (USB-OTG and Bluetooth RFCOMM).
-- **Remote Desktop**: RDP and VNC with touch-to-mouse translation, clipboard sync, and resolution scaling.
-- **Remote File Systems**: SFTP, FTP/FTPS, SMB 2/3, WebDAV, NFS v4, and S3-compatible object storage (AWS S3, Cloudflare R2, MinIO) with in-situ file editor and viewer.
-- **Database Terminals**: Interactive clients for PostgreSQL, MySQL, Redis, and MongoDB running securely over transparent SSH tunnels.
-- **Container Infrastructure**: Native Docker and Kubernetes pod/container explorer: view container status, stream logs, restart pods, and exec interactive shell.
+Modern Android (Android 10 through Android 16 / targetSdk 36) imposes severe security and background restrictions. ArnTCLI uses verified, standards-compliant techniques to deliver desktop-grade functionality without requiring root access.
 
-### 🛰️ Network Tools (Diagnostics & Inspection)
-- **Active Probing**: ICMP/TCP Ping, continuous MTR, visual Traceroute with AS-lookup, whois, and multi-port scanning.
-- **DNS Deep Inspection**: Comprehensive record query (A, AAAA, CNAME, MX, TXT, NS, PTR, SOA, SRV), DNS-over-HTTPS (DoH), DNS-over-TLS (DoT), and global propagation checks.
-- **LAN Discovery & Audit**: Local subnet network scan identifying active IPs, hostnames, MAC addresses, IEEE OUI hardware vendor identification, mDNS/Bonjour discovery, and UPnP service mapping.
-- **Wi-Fi Environment Analyzer**: Channel frequency inspection (2.4GHz, 5GHz, 6GHz Wi-Fi 6E/7), RSSI signal strength tracking, security protocol detection (WPA3/WPA2), and channel interference optimization.
-- **Throughput & Performance**: Local network iperf3 (client and daemon server modes) and integrated WAN speed test.
-- **Power & Security**: Wake-on-LAN (WoL) magic packet dispatcher, and SSL/TLS certificate inspector (expiration alert, cipher suite negotiation, chain validation).
-- **Packet Capture**: Rootless on-device packet sniffing using Android `VpnService` with direct `.pcap` export for Wireshark analysis.
+### 3.1 Network Discovery Without Root (Overcoming the Android 10+ ARP Block)
+In Android 10+, `/proc/net/arp` was blocked (`EACCES`), and MAC addresses return `02:00:00:00:00:00`. ArnTCLI achieves >90% true MAC and hardware vendor identification through multi-protocol synthesis:
+1. **NetBIOS Node Status (UDP 137)**: Probing port 137 on active LAN hosts returns Windows, Linux (Samba), and NAS computer names, domain memberships, and the adapter's physical MAC address directly in the payload header.
+2. **mDNS & Bonjour Querying**: Probing `_raop._tcp.local` (Apple AirPlay) and `_spotify-connect._tcp.local` reveals raw hardware MAC addresses in the TXT records.
+3. **UPnP / SSDP Discovery (UDP 1900)**: Probing UPnP root devices parses XML device descriptions where device UUIDs (Version 1) contain the host MAC address in the 48-bit node field.
+4. **IPv6 Neighbor Discovery (SLAAC EUI-64)**: Reverse-computing the hardware MAC address from stateless autoconfigured IPv6 link-local addresses (`fe80::...`).
+5. **Embedded IEEE OUI Radix Trie (~220 KB)**: An offline binary search trie mapping 45,000+ IEEE MAC prefixes to manufacturers, resolving vendors instantly with zero network lookups.
 
-### 🧪 Dev & Protocol Lab
-- **API & RPC Testing**: Mini-Postman HTTP client (REST, GraphQL, SSE) with environment variables, JSON syntax highlighting, and request history.
-- **Streaming & PubSub**: WebSocket client, MQTT client (broker connection, topic subscription, payload publishing), gRPC client, and raw TCP/UDP packet generator.
-- **Physical RF & Proximity**: Bluetooth Low Energy (BLE) peripheral scanner with GATT characteristic explorer, and NFC tag reader/writer.
-- **Industrial & Edge Protocols**: Modbus TCP/RTU probe and SNMP v2c/v3 query tools for industrial equipment and managed switches.
-- **Developer Utilities**: Dual-pane encoders/decoders for Base64, Hex, URL, JSON Web Tokens (JWT inspection), cryptographic hashes (MD5, SHA-256), and epoch timestamp calculators.
+### 3.2 Wi-Fi Analyzer Without Throttling Lockout
+Android throttles `WifiManager.startScan()` to 4 times per 2-minute window for foreground apps. ArnTCLI decouples the analyzer:
+- **Continuous 1Hz Walk-Test Graphs**: Leverages unthrottled `WifiManager.getConnectionInfo()` / `NetworkCapabilities` polling to capture connected BSSID, RSSI, link speed, frequency, and channel utilization at 1 second intervals for smooth real-time walking graphs.
+- **Neighbor Channel Rating**: Rates 2.4 GHz, 5 GHz, and 6 GHz (Wi-Fi 6E/7) channels based on cached scan passes + Reduced Neighbor Reporting (RNR) from beacon frames.
 
-### 🔐 Tunnel & Privacy
-- **VPN Clients**: Native WireGuard client engine and OpenVPN client integration.
-- **Mesh Networks**: Tailscale and ZeroTier coordination for transparent device-to-device connectivity.
-- **Persistent Port Forwarding**: Background foreground service managing Local (`-L`), Remote (`-R`), and Dynamic SOCKS5 (`-D`) proxy tunnels.
-- **Reverse Port Expose**: Built-in reverse proxy tunnel exposing local phone web servers or test services to a public HTTPS endpoint (ngrok alternative).
+### 3.3 Rootless Packet Capture & WireGuard Mutual Exclusion
+Android restricts the system to a single active `VpnService`:
+- **Standalone Capture Mode**: Spawns a local userspace TUN loopback interface (`VpnService.Builder`). Packet headers are captured into an in-memory ring buffer, streamed to a `.pcap` file via Storage Access Framework (SAF), or streamed live to desktop Wireshark over local HTTP (`http://<device-ip>:8080/live.pcap`).
+- **WireGuard + PCAP Coexistence**: When WireGuard is active, packet capture hooks directly into WireGuard's userspace ring buffer before encryption—enabling simultaneous packet inspection and VPN connectivity without crashing the Android network stack.
 
-### 📊 Monitor & Alert
-- **Agentless Server Metrics**: Connects via SSH to probe Linux `/proc` and `systemd` to visualize real-time CPU load, RAM utilization, disk mount usage, and service health without installing remote agents.
-- **Uptime Monitoring**: Periodic background probe for HTTP endpoints, TCP ports, and ICMP ping with immediate push notifications on failure.
-- **Domain & SSL Watchdog**: Automated background warnings 30, 14, and 3 days prior to SSL certificate or domain registration expiration.
-- **Topology View**: Visual node graph of devices and service links mapped within each Space.
+### 3.4 Background Port Forwarding & Android 14–16 Survival
+To prevent Android OEMs and OS battery managers from killing persistent tunnels:
+- **Process Isolation**: Spawns a dedicated `:tunnel_process` (~18–25 MB heap), isolating network sockets from UI configuration memory churn.
+- **Foreground Service Type**: Uses `android:foregroundServiceType="specialUse"` with explicit ongoing notification and traffic meter. Strictly avoids `dataSync` (which Android 15 kills after a hard 6-hour limit).
+- **Socket Pacing**: Configures TCP keepalives (`SO_KEEPALIVE`) and application-level SSH ping packets every 30 seconds, maintaining cellular and Wi-Fi NAT gateway mappings without waking up the high-power CPU.
 
-### ⚙️ Automation & Scripting
-- **Cross-Module Workflows**: Multi-step automated sequences (e.g., *Activate WireGuard → SSH into bastion → Run backup script → Verify HTTP 200*).
-- **Event Triggers**: Automated workflow execution triggered by schedule (cron), connection to a specific Wi-Fi SSID, or server-down alerts.
-- **Parallel Multi-Exec**: Broadcast commands to multiple target servers simultaneously with diff-based output inspection.
+### 3.5 Cryptographic Architecture & Hardware Security
+- **Key Derivation**: Argon2id ($m=64\text{MB}, t=3, p=4$) via pure Kotlin/native libsodium bindings.
+- **Symmetric Encryption**: Authenticated AES-256-GCM and ChaCha20-Poly1305.
+- **Hardware Enclave**: Master keys sealed in hardware StrongBox / Android TEE with `setInvalidatedByBiometricEnrollment(true)`. Unlocks invoke `BiometricPrompt.CryptoObject`.
+- **YubiKey Integration**: Uses YubiKit for Android supporting FIDO2 (WebAuthn `hmac-secret` PRF extension) and PIV (smartcard slot 9D ECDH/RSA) over both NFC and USB-OTG.
 
-### 🤖 AI Copilot (Strictly Opt-In & Privacy-Preserving)
-- **Log & Error Translation**: Contextual explanation of cryptic kernel panic logs, Nginx/Apache error codes, or broken network routes.
-- **Natural Language Command Synthesis**: Convert conversational prompts (*"Find all files modified in the last 24h over 100MB"*) into validated bash/zsh commands.
-- **Automated Root-Cause Diagnostic**: One-tap *"Why is my connection slow?"* pipeline that runs ping, DNS resolution, and traceroute sequentially and summarizes the bottleneck.
-- **Zero-Vault Guarantee**: Strict architectural isolation ensures credentials, private keys, and passwords stored in the Vault are never transmitted to LLM inference endpoints.
-
-### 📝 Knowledge Base
-- **Per-Device Markdown Notebooks**: Document host architectures, port mappings, operational notes, and hardware serial numbers directly alongside host credentials.
-- **Session Audit & Terminal Recordings**: Record interactive terminal sessions in asciinema-compatible format for replay and documentation.
-- **Auto-Generated Topology Docs**: Export discovered LAN devices and network interfaces into formatted Markdown summaries.
+### 3.6 Dev Lab & Interactive Scripting Without Heavy Node.js
+- **Mini-Postman Engine**: Built on OkHttp 4.12 + `okhttp-sse`.
+- **Postman Script Compatibility**: Uses embedded QuickJS (`dokar3/quickjs-kt`, ~1.8 MB binary) to execute `pm.environment.set()`, pre-request scripts, and test assertions in <4ms with ~2 MB RAM footprint—eliminating heavy Node.js runtimes.
+- **Dynamic Protobuf / gRPC**: Square `wire-schema` parses `.proto` definitions at runtime dynamically without compiling code on the phone.
 
 ---
 
-## 4. Phased Master Roadmap (v0.1 to v10.0)
+## 4. Master Phased Roadmap (v0.1 to v10.0)
 
-| Version Milestone | Strategic Focus | Deliverables & Scope |
-| :--- | :--- | :--- |
-| **v0.1.0** *(Current Baseline)* | **Foundation & Architecture** | • Project baseline, Gradle build pipeline, and `VerifyAndroidRulesTask`.<br>• Electric Slate dark design system and Elms Sans typography suite.<br>• Initial Space model, Vault encryption skeleton, and configuration import/export contracts.<br>• Pocket basic utilities (Ping, DNS lookup, Subnet calculator). |
-| **v0.2.0 - v0.3.0** | **Terminal & Network Toolkit** | • Production SSH client (Ed25519, RSA, interactive terminal buffer).<br>• LAN Discovery engine (ARP scanning, MAC vendor lookup, mDNS).<br>• Wi-Fi environment analyzer & channel rating tool.<br>• MTR / Traceroute with visual hop breakdown and Wake-on-LAN.<br>• Android Quick Settings tiles and home screen widgets. |
-| **v0.4.0 - v0.5.0** | **Tunnels & Storage Access** | • Background persistent SSH port forwarding (Local, Remote, SOCKS5).<br>• Integrated WireGuard client implementation.<br>• SFTP file manager with in-situ code and text editor.<br>• End-to-end encrypted Vault backup and multi-device sync via QR / encrypted JSON. |
-| **v0.6.0 - v0.7.0** | **Extended Protocols & Lab** | • Remote desktop protocols: RDP and VNC viewer with smooth gestures.<br>• Remote storage integrations: SMB 2/3, WebDAV, and AWS S3 / MinIO browser.<br>• Dev Lab: Mini-Postman HTTP/GraphQL client, WebSocket, and MQTT client.<br>• Hardware RF: BLE peripheral scanner and NFC tag inspector. |
-| **v0.8.0 - v0.9.0** | **Monitoring & Automation** | • Agentless server dashboard (CPU, RAM, disk, service status via SSH).<br>• Uptime watchdog service with Android notification alerts.<br>• Cross-module automation workflow builder and cron trigger engine.<br>• Multi-exec command broadcasting to server groups. |
-| **v1.0.0** | **Public Production Release** | • Rootless packet capture engine (`VpnService`) with `.pcap` export.<br>• Database GUI terminal (Postgres, MySQL, Redis via SSH tunnel).<br>• Docker & Kubernetes management (pod logs, container restarts, exec).<br>• Privacy-first opt-in AI Copilot for log analysis and error troubleshooting. |
-| **v2.0.0 - v3.0.0** | **Team Collaboration & Enterprise** | • Encrypted Team Spaces with role-based access control (RBAC).<br>• Team Vault sharing using asymmetric public key cryptography.<br>• Comprehensive immutable audit logging for security compliance.<br>• SSO authentication (OIDC, SAML, GitHub Enterprise, Google Workspace). |
-| **v4.0.0 - v5.0.0** | **Industrial & Edge Hardware** | • Serial USB-OTG and Bluetooth serial console terminal.<br>• Industrial protocol diagnostic tools: Modbus TCP/RTU and SNMP v2/v3.<br>• Hardware device provisioning workflows for embedded routers and edge gateways. |
-| **v6.0.0 - v7.0.0** | **Distributed Mesh & Companion Ecosystem** | • Zero-config p2p encrypted mesh integration (Tailscale / Nebula).<br>• Headless micro-agent daemon for automated homelab telemetry.<br>• Cross-platform desktop companion (ArnTCLI Workstation for Windows/Linux/macOS). |
-| **v8.0.0 - v10.0.0** | **Autonomous Infrastructure & Extensible SDK** | • Complete Lua/Kotlin Plugin SDK for custom protocols and custom analyzers.<br>• Automated self-healing runbooks (detect degradation → trigger remediation).<br>• Deep network topological graph intelligence with automated vulnerability audits. |
+| Version Milestone | Strategic Focus | Deliverables & Scope | Technical Engine / Architecture |
+| :--- | :--- | :--- | :--- |
+| **v0.1.0** *(Baseline)* | **Foundation & Design System** | • Repository baseline, Gradle build pipeline, `VerifyAndroidRulesTask`.<br>• Electric Slate dark design system & Elms Sans typography.<br>• Initial Space model, Vault encryption skeleton, Import/Export contracts.<br>• Pocket basic utilities (Ping, DNS lookup, Subnet calculator). | Kotlin Compose, Material 3, Android Keystore, VerifyAndroidRulesTask. |
+| **v0.2.0** | **Tactile Terminal & Core Pocket Diagnostics** | • Production SSH v2 client with Ed25519 / RSA key auth.<br>• Interactive terminal emulator buffer with ANSI 256-color & custom key bar (Esc, Ctrl, Alt, Tab, Arrows).<br>• Pocket ICMP Ping with millisecond jitter graph.<br>• Pocket Full DNS query tool (A, AAAA, CNAME, MX, TXT, NS, PTR, SOA, SRV, DoH/DoT).<br>• CIDR Subnet Calculator with binary mask & usable host range view. | `sshj:0.40.0`, BouncyCastle, DnsJava + OkHttp DoH, custom Compose Canvas terminal buffer. |
+| **v0.3.0** | **Network Reconnaissance & Wi-Fi Analyzer** | • LAN Discovery engine (NetBIOS, mDNS, UPnP, IPv6 EUI-64).<br>• Offline 45,000-entry IEEE OUI vendor lookup trie.<br>• Continuous MTR & visual Traceroute with AS-lookup.<br>• Wi-Fi 2.4/5/6GHz channel analyzer with 1Hz live RSSI graph.<br>• Wake-on-LAN magic packet dispatcher.<br>• Android Quick Settings tiles & Home Screen diagnostic widgets. | Custom UDP probes, Java DatagramSocket, `WifiManager.getConnectionInfo`, Glance AppWidgets. |
+| **v0.4.0** | **Secure SSH Engine & Persistent Tunnels** | • Background persistent SSH port forwarding (Local `-L`, Remote `-R`, Dynamic SOCKS5 `-D`).<br>• Dedicated `:tunnel_process` with `specialUse` foreground service.<br>• SSH Jump Host / Bastion tunneling chaining.<br>• SSH Agent forwarding & X11 forwarding toggle.<br>• Terminal session multiplexer (split-panes, tabs, multi-session dock). | `sshj`, isolated Android service process, `SO_KEEPALIVE` socket pacing, Netty SOCKS5 handler. |
+| **v0.5.0** | **WireGuard Engine, SFTP & Vault Air-Gapped Sync** | • Native WireGuard client engine (userspace Go/Rust backend).<br>• Dual-pane SFTP file manager with built-in text/code editor and chmod inspector.<br>• Vault Air-Gapped Sync: Animated high-density QR codes (BC-UR / Luby Transform).<br>• Hardware Security Key integration: YubiKey NFC/OTG FIDO2 `hmac-secret` and PIV. | `wireguard-android`, BouncyCastle SFTP, YubiKit, ZXing + BC-UR fountain codec. |
+| **v0.6.0** | **Remote Desktop & Cloud Storage** | • High-performance RDP and VNC viewer with virtual trackpad and clipboard sync.<br>• Cloud & NAS Storage integrations: SMB 2/3, WebDAV, NFS v4, AWS S3 / MinIO.<br>• Background file transfer manager with paused/resumed stream resilience.<br>• In-situ media viewer (image preview, hex editor for binary files). | FreeRDP JNI / pure Kotlin VNC, `smbj:0.13.0`, OkHttp AWS SigV4, SAF integration. |
+| **v0.7.0** | **Dev Lab: Mini-Postman, WebSocket & IoT** | • Mini-Postman HTTP/GraphQL client with environments and collections.<br>• Embedded QuickJS engine for Postman `pm.*` test script execution.<br>• Real-time WebSocket and MQTT client (topic subscribe, message publish).<br>• Dynamic gRPC client with runtime `.proto` schema reflection.<br>• BLE peripheral scanner with GATT service tree explorer & NFC tag inspector. | OkHttp 4.12, `dokar3/quickjs-kt`, HiveMQ MQTT client, Square `wire-schema`, Nordic `ble-ktx`. |
+| **v0.8.0** | **Agentless Server Telemetry & Watchdog** | • Agentless server dashboard: CPU, RAM, Disk, Load Average, systemd services via raw SSH `/proc` polling.<br>• Background Uptime Watchdog service (HTTP, TCP, Ping) with instant failure alerts.<br>• SSL/TLS certificate expiry watchdog (30d, 14d, 3d push notifications).<br>• Space Device Topology visual node graph with live health badges. | SSH exec commands, WorkManager periodic workers, Compose Canvas node-graph layout. |
+| **v0.9.0** | **Automation Workflows & Multi-Exec** | • Cross-Module DAG Workflow builder (*Connect WireGuard → SSH Run → HTTP Verify*).<br>• Event triggers: Cron schedule, Wi-Fi SSID association, server-down webhooks.<br>• Parallel Multi-Exec: Broadcast commands across multiple servers with diff output.<br>• Terminal session recording in asciinema format. | Kotlin Coroutines DAG executor, Android `AlarmManager`, asciinema v2 recorder. |
+| **v1.0.0** | **Production Release: PCAP, DB Tunnels & Copilot** | • Rootless Packet Capture engine (`VpnService`) with `.pcap` export & Wireshark streaming.<br>• Database terminal clients: PostgreSQL, MySQL, Redis (RESP3) via SSH tunnel.<br>• Docker & Kubernetes management (stream logs, inspect pods, restart containers, exec).<br>• Privacy-First Diagnostic Copilot: Deterministic network triage heuristics & rule-based error explainer. | Userspace TUN loopback, pure Kotlin wire parsers, Docker REST API over SSH stream, zero-cloud triage engine. |
+| **v2.0.0 - v3.0.0** | **Encrypted Team Spaces & Vault Sharing** | • Encrypted Team Spaces with role-based access control (RBAC).<br>• Team Vault sharing using asymmetric public-key cryptography (Curve25519).<br>• Immutable local audit logging for enterprise security compliance.<br>• SSO authentication integration (OIDC, SAML, GitHub Enterprise). | libsodium asymmetric encryption, local encrypted SQLite audit logs, AppAuth OIDC. |
+| **v4.0.0 - v5.0.0** | **Industrial IoT & Edge Hardware** | • Serial USB-OTG console terminal (FTDI, CP2102, CH340, PL2303) and Bluetooth RFCOMM.<br>• Industrial protocol diagnostic tools: Modbus TCP/RTU and SNMP v2c/v3.<br>• Router and switch firmware flashing / TFTP / Syslog server daemon. | `usb-serial-for-android`, SNMP4J with MIB-2 tree, pure Kotlin Modbus engine. |
+| **v6.0.0 - v7.0.0** | **Distributed Mesh & Desktop Workstation Companion** | • Zero-config peer-to-peer mesh coordination (Tailscale / Nebula / WireGuard mesh).<br>• Headless micro-agent daemon for automated homelab telemetry.<br>• Cross-platform desktop companion (ArnTCLI Workstation for Windows, Linux, macOS) syncing peer-to-peer. | Tailscale userspace Go engine, Compose Multiplatform desktop companion, P2P sync. |
+| **v8.0.0 - v10.0.0** | **Autonomous Infrastructure & Extensible Plugin SDK** | • Extensible Plugin SDK (Lua / Kotlin script runtime) for custom protocols and custom decoders.<br>• Autonomous self-healing runbooks (detect degradation → trigger verified remediation sequence).<br>• Deep network topological graph intelligence with automated vulnerability and port-exposure audits. | Embedded Lua / QuickJS Plugin host, automated topological correlation engine, offline CVE checker. |
 
 ---
 
-## 5. Architectural & Android Platform Mitigations
+## 5. Competitive Matrix & User Psychology
 
-1. **Modular Plugin Architecture**:
-   To prevent scope creep and bloated binaries, feature sets are decoupled into dedicated feature modules (`:core:vault`, `:core:terminal`, `:feature:nettools`, `:feature:connect`, `:feature:tunnel`, `:feature:monitor`, `:feature:lab`).
-2. **Android Wi-Fi & MAC Restrictions**:
-   Android 10+ restricts direct access to device MAC addresses and throttles Wi-Fi scanning. ArnTCLI mitigates this by querying the local ARP table (`/proc/net/arp`), probing mDNS/UPnP metadata, and leveraging Wi-Fi RTT/Wi-Fi Suggestion APIs where permissible.
-3. **Android Single VpnService Conflict**:
-   The Android OS permits only one active `VpnService` at a time. The WireGuard client and the Rootless Packet Capture engine must coordinate via a mutual exclusion manager: packet capture can either wrap internal traffic or temporarily defer the active VPN profile with clear UI notifications.
-4. **Google Play Store Policy & Security Disclosure**:
-   Port scanning and packet capture utilities are strictly classified as security administration tools. Explicit in-app disclosures, permission rationale dialogs, and clear diagnostic positioning are built into the onboarding flow to guarantee Play Store compliance.
-5. **Quality Over Quantity Principle**:
-   High-friction components—principally the Terminal emulator buffer, the SSH connection stability manager, and the encrypted Vault—are built to enterprise standard before secondary diagnostic protocols are added.
+### 5.1 Competitive Comparison
+| Feature Dimension | ArnTCLI | Termius | Fing / WiFiman | Termux |
+| :--- | :--- | :--- | :--- | :--- |
+| **Pricing Model** | 100% Free / Open Core | \$10–\$15 / month subscription | Ad-supported / Hardware upsell | Free / Open Source |
+| **Cloud Dependency** | **Zero (100% Offline-First)** | Mandatory cloud account & sync | Cloud account required for history | Zero (Local only) |
+| **Data Privacy** | All credentials locked on-device | Keys synced to Termius servers | Device scans uploaded to Fing cloud | Local on-device storage |
+| **UI Experience** | Arinara Electric Slate dark system | Polished commercial GUI | Consumer-oriented GUI | Raw Linux CLI only (No GUI widgets) |
+| **Network Diagnostics** | Deep (LAN, Wi-Fi 6E, PCAP, MTR) | Basic (SSH only) | Specialized (LAN/Wi-Fi only) | CLI packages (nmap, iproute2) |
+| **Vault & Hardware Keys** | YubiKey NFC/OTG, StrongBox, QR | Proprietary cloud vault | None | OpenSSL / CLI gpg-agent |
+| **Dev Lab & IoT** | Postman mini, MQTT, BLE, Modbus | None | None | CLI curl, mosquitto-clients |
+| **Battery Impact** | Isolated `:tunnel_process` pacing | Moderate background drain | Low background activity | High background CPU if unmanaged |
+
+### 5.2 Target Personas & Retention Drivers
+1. **The DevOps & Linux Sysadmin**:
+   - *Pain Point*: Being on-call without a laptop; unable to securely SSH into a bastion host through a jump server, verify Docker containers, or forward a remote port without paying \$120/yr to Termius.
+   - *Retention Driver*: Rock-solid persistent SSH port forwarding, jump host chaining, and agentless server health dashboards.
+2. **The Homelabber & Self-Hoster**:
+   - *Pain Point*: Juggling 4 different apps (WireGuard, PingTools, Termius, Nextcloud/SMB) to manage home servers while on mobile.
+   - *Retention Driver*: Contextual Homelab **Space** that auto-tunnels WireGuard, exposes SFTP/SMB storage, and displays server CPU/RAM metrics in one screen.
+3. **The Network Field Engineer**:
+   - *Pain Point*: Carrying heavy diagnostic equipment or dealing with Fing's aggressive upsells and ad banners during client network audits.
+   - *Retention Driver*: **Pocket** tools (1-tap ICMP jitter, unthrottled Wi-Fi walking RSSI graph, offline IEEE OUI vendor discovery, and rootless `.pcap` export).
+4. **The IoT & Hardware Hacker**:
+   - *Pain Point*: Requiring separate tools to inspect BLE beacons, query MQTT brokers, and plug into USB-OTG serial consoles on embedded boards.
+   - *Retention Driver*: Integrated Dev Lab with BLE GATT explorer, MQTT subscriber, and USB serial terminal in a single dark UI.
+
+---
+
+## 6. Implementation Architecture & Codebase Guidelines
+
+1. **Strict Modularization**:
+   Core capabilities reside in isolated modules to prevent monolithic bloat:
+   - `:core:designsystem` (Electric Slate tokens, presets, typography, spring physics)
+   - `:core:vault` (Argon2id, Android Keystore, AES-256-GCM, YubiKit)
+   - `:core:terminal` (SSHJ, ANSI VT100/220 buffer, custom input bar)
+   - `:feature:pocket` (Instant ping, DNS, subnet calculator)
+   - `:feature:nettools` (LAN discovery, Wi-Fi analyzer, traceroute, WoL)
+   - `:feature:tunnel` (WireGuard, isolated `:tunnel_process`, SOCKS5)
+   - `:feature:devlab` (Mini-Postman, QuickJS, MQTT, BLE)
+   - `:feature:monitor` (Agentless SSH `/proc` polling, Uptime watchdog)
+2. **Offline Data Storage**:
+   - Local encrypted SQLite via Room with SQLCipher / raw encrypted files.
+   - Zero remote crashlytics or third-party tracking SDKs.
+3. **Rule Enforcement**:
+   - Every build and commit must pass `./gradlew verifyAndroidRules` (AR-001 through AR-016).
+   - All components adhere strictly to `#0D1117` background, `#161C26` card surface, `#7A5AF8` violet accent, and Elms Sans typography.
