@@ -50,11 +50,14 @@ import com.arinara.arntcli.ui.model.VaultCredential
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
-import com.arinara.arntcli.ui.pocket.PocketScreen
-import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
-import com.arinara.arntcli.ui.pocket.PingSheet
 import com.arinara.arntcli.ui.pocket.DnsSheet
+import com.arinara.arntcli.ui.pocket.PingSheet
+import com.arinara.arntcli.ui.pocket.PocketScreen
+import com.arinara.arntcli.ui.pocket.PortScannerSheet
 import com.arinara.arntcli.ui.pocket.SslInspectorSheet
+import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
+import com.arinara.arntcli.ui.pocket.WifiInspectorSheet
+import com.arinara.arntcli.ui.pocket.WolSheet
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
 import com.arinara.arntcli.ui.space.SpaceSwitcherSheet
@@ -85,6 +88,9 @@ fun MainScaffold(
     var isPingSheetVisible by remember { mutableStateOf(false) }
     var isDnsSheetVisible by remember { mutableStateOf(false) }
     var isSslInspectorVisible by remember { mutableStateOf(false) }
+    var isWolSheetVisible by remember { mutableStateOf(false) }
+    var isWifiInspectorVisible by remember { mutableStateOf(false) }
+    var isPortScannerVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val processEngine = remember { LocalProcessEngine() }
@@ -288,6 +294,9 @@ fun MainScaffold(
                                 "dns" -> isDnsSheetVisible = true
                                 "subnet" -> isSubnetCalculatorVisible = true
                                 "ssl" -> isSslInspectorVisible = true
+                                "wol" -> isWolSheetVisible = true
+                                "wifi" -> isWifiInspectorVisible = true
+                                "portscan" -> isPortScannerVisible = true
                             }
                         }
                     )
@@ -346,6 +355,24 @@ fun MainScaffold(
         SslInspectorSheet(
             visible = isSslInspectorVisible,
             onDismiss = { isSslInspectorVisible = false }
+        )
+
+        // Wake-on-LAN Bottom Sheet
+        WolSheet(
+            visible = isWolSheetVisible,
+            onDismiss = { isWolSheetVisible = false }
+        )
+
+        // Wi-Fi Inspector Bottom Sheet
+        WifiInspectorSheet(
+            visible = isWifiInspectorVisible,
+            onDismiss = { isWifiInspectorVisible = false }
+        )
+
+        // TCP Port Scanner Bottom Sheet
+        PortScannerSheet(
+            visible = isPortScannerVisible,
+            onDismiss = { isPortScannerVisible = false }
         )
     }
 }

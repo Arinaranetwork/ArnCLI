@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.NetworkPing
 import androidx.compose.material.icons.outlined.Power
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Text
@@ -112,9 +113,18 @@ fun PocketScreen(
             title = "Wake-on-LAN",
             subtitle = "Send UDP magic packets to target MAC",
             leadingIcon = Icons.Outlined.Power,
-            leadingIconTint = ElectricSlateTokens.TextMuted,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { onToolSelected("wol") }
+        )
+
+        AppListItem(
+            title = "TCP Port Scanner",
+            subtitle = "Probe service reachability and port latency",
+            leadingIcon = Icons.Outlined.Search,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = { onToolSelected("portscan") }
         )
 
         BottomClearanceSpacer()

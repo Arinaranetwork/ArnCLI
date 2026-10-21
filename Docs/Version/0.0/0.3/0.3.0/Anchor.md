@@ -1,0 +1,8 @@
+# Anchor - ArnTCLI 0.3.0
+Status: Open    Opened: 2026-10-21    Finished: 
+
+| ID    | Request                                                                    | Phase | Acceptance                                                                                                                                                    | Status      | Evidence |
+|-------|----------------------------------------------------------------------------|-------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|----------|
+| A-001 | now can you continue the implementation (Wake-on-LAN magic packet engine)  | 3     | `WolEngine` builds valid 102-byte payload, validates MAC addresses, sends UDP broadcast, with interactive `WolSheet` in Pocket, unit tests passing          | Verified | `WolEngineTest.kt` (8 passed), `verifyAndroidRules` (0 violations), `testDebugUnitTest` (passed) |
+| A-002 | now can you continue the implementation (Wi-Fi Live Inspector engine)      | 3     | `WifiInspectorEngine` queries active Wi-Fi link speed, RSSI dBm, frequency band, with interactive `WifiInspectorSheet` in Pocket, unit tests passing        | Verified | `WifiInspectorEngineTest.kt` (5 passed), `verifyAndroidRules` (0 violations), `testDebugUnitTest` (passed) |
+| A-003 | now can you continue the implementation (TCP Port Scanner engine)          | 3     | `LanPortScanner` scans targets for open ports with latency measurement, with interactive `PortScannerSheet` in Pocket, unit tests passing                     | Verified | `LanPortScannerTest.kt` (5 passed), `verifyAndroidRules` (0 violations), `testDebugUnitTest` (passed) |
