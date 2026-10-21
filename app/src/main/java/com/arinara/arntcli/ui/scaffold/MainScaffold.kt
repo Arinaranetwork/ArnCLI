@@ -49,8 +49,10 @@ import com.arinara.arntcli.ui.model.TerminalSession
 import com.arinara.arntcli.ui.model.VaultCredential
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.pocket.DnsSheet
+import com.arinara.arntcli.ui.pocket.LanDiscoverySheet
 import com.arinara.arntcli.ui.pocket.PingSheet
 import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.pocket.PortScannerSheet
@@ -58,6 +60,7 @@ import com.arinara.arntcli.ui.pocket.SslInspectorSheet
 import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
 import com.arinara.arntcli.ui.pocket.WifiInspectorSheet
 import com.arinara.arntcli.ui.pocket.WolSheet
+import com.arinara.arntcli.ui.sessions.AddHostSheet
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
 import com.arinara.arntcli.ui.space.SpaceSwitcherSheet
@@ -91,6 +94,9 @@ fun MainScaffold(
     var isWolSheetVisible by remember { mutableStateOf(false) }
     var isWifiInspectorVisible by remember { mutableStateOf(false) }
     var isPortScannerVisible by remember { mutableStateOf(false) }
+    var isAddHostVisible by remember { mutableStateOf(false) }
+    var isDiscoveryVisible by remember { mutableStateOf(false) }
+    var prefilledDiscoveryHost by remember { mutableStateOf<DiscoveredHost?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
     val processEngine = remember { LocalProcessEngine() }
@@ -282,7 +288,22 @@ fun MainScaffold(
                         contentPadding = contentPadding,
                         activeSpaceName = activeSpace.name,
                         hosts = spaceHosts,
-                        onAddHostClick = { }
+                        onAddHostClick = { isAddHostVisible = true },
+                        onHostClick = { host ->
+                            val session = TerminalSession(
+                                id = "session-${host.id}",
+                                title = "${host.protocol.lowercase()}:${host.name}",
+                                shell = "${host.protocol} ${host.username}@${host.address}:${host.port}",
+                                isConnected = true,
+                                lines = listOf(
+                                    "ArnCLI Remote Connection [Space: ${activeSpace.name}]",
+                                    "Connected to ${host.name} (${host.address}:${host.port}) via ${host.protocol}",
+                                    "Authenticated as ${host.username}. Remote session ready."
+                                )
+                            )
+                            sessions = sessions + session
+                            currentDestination = MainDestination.Terminal
+                        }
                     )
                 }
                 MainDestination.Pocket -> {
@@ -297,6 +318,7 @@ fun MainScaffold(
                                 "wol" -> isWolSheetVisible = true
                                 "wifi" -> isWifiInspectorVisible = true
                                 "portscan" -> isPortScannerVisible = true
+                                "discovery" -> isDiscoveryVisible = true
                             }
                         }
                     )
@@ -373,6 +395,31 @@ fun MainScaffold(
         PortScannerSheet(
             visible = isPortScannerVisible,
             onDismiss = { isPortScannerVisible = false }
+        )
+
+        // LAN Host Discovery Bottom Sheet
+        LanDiscoverySheet(
+            visible = isDiscoveryVisible,
+            onDismiss = { isDiscoveryVisible = false },
+            onHostSelected = { discovered ->
+                prefilledDiscoveryHost = discovered
+                isAddHostVisible = true
+            }
+        )
+
+        // Register / Add Host Bottom Sheet
+        AddHostSheet(
+            visible = isAddHostVisible,
+            onDismiss = {
+                isAddHostVisible = false
+                prefilledDiscoveryHost = null
+            },
+            activeSpaceId = activeSpace.id,
+            initialAddress = prefilledDiscoveryHost?.ipAddress ?: "",
+            initialName = prefilledDiscoveryHost?.hostname ?: "",
+            onSaveHost = { newHost ->
+                hosts = hosts + newHost
+            }
         )
     }
 }

@@ -30,6 +30,8 @@ Phase 3 - NetworkReconnaissance [In Progress]
 - [x] Task 16: Implement Wake-on-LAN magic packet engine (WolEngine) and WolSheet - Phase 3
 - [x] Task 17: Implement Wi-Fi Live Inspector (WifiInspectorEngine) and WifiInspectorSheet - Phase 3
 - [x] Task 18: Implement TCP Port Scanner (LanPortScanner) and PortScannerSheet - Phase 3
+- [x] Task 19: Implement LAN Host Discovery engine (LanDiscoveryEngine) and LanDiscoverySheet - Phase 3
+- [x] Task 20: Implement Host Registration (AddHostSheet) and Sessions connection routing - Phase 3
 
 ## In Progress
 

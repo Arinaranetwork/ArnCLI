@@ -56,6 +56,7 @@ fun SessionsScreen(
     activeSpaceName: String,
     hosts: List<HostItem>,
     onAddHostClick: () -> Unit,
+    onHostClick: (HostItem) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -187,7 +188,7 @@ fun SessionsScreen(
                     leadingIcon = icon,
                     leadingIconTint = ElectricSlateTokens.PrimaryAccent,
                     action = AppListItemAction.Chevron,
-                    onClick = { }
+                    onClick = { onHostClick(host) }
                 )
             }
         }

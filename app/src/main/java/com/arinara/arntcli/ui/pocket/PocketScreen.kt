@@ -127,6 +127,15 @@ fun PocketScreen(
             onClick = { onToolSelected("portscan") }
         )
 
+        AppListItem(
+            title = "LAN Host Discovery",
+            subtitle = "Sweep local subnet and discover active devices",
+            leadingIcon = Icons.Outlined.Dns,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = { onToolSelected("discovery") }
+        )
+
         BottomClearanceSpacer()
     }
 }

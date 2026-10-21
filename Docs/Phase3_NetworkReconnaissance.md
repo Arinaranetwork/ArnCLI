@@ -4,6 +4,8 @@ Expand Pocket diagnostics and network reconnaissance capabilities by delivering:
 1. Wake-on-LAN magic packet dispatcher (`WolEngine` & `WolSheet`) for booting local servers and workstations over the network.
 2. Wi-Fi live network inspector (`WifiInspectorEngine` & `WifiInspectorSheet`) reporting SSID, BSSID, link speed, frequency band (2.4 / 5 / 6 GHz), and signal strength.
 3. Fast on-device TCP Port Scanner (`LanPortScanner` & `PortScannerSheet`) probing common infrastructure ports with latency tracking.
+4. Local Subnet Host Discovery (`LanDiscoveryEngine` & `LanDiscoverySheet`) scanning active IP addresses and resolving hostnames with 1-tap host import.
+5. Host Registration and Space Management (`AddHostSheet` in `SessionsScreen`) for creating and launching remote terminal host sessions.
 
 ## Scope
 - `WolEngine` constructing RFC-standard 102-byte magic packets (6x 0xFF prefix followed by 16x MAC repetitions) and broadcasting via UDP socket.
@@ -12,7 +14,10 @@ Expand Pocket diagnostics and network reconnaissance capabilities by delivering:
 - `WifiInspectorSheet` displaying live wireless statistics, signal quality badge, and connection parameters.
 - `LanPortScanner` testing TCP connection establishment across user-defined ports or common service presets (SSH, HTTP, HTTPS, RDP, MySQL, Postgres, etc.) with timeout pacing.
 - `PortScannerSheet` interactive scanner in Pocket allowing single-target or multi-port sweep with live status indicators.
-- Full unit test coverage for `WolEngine`, `WifiInspectorEngine`, and `LanPortScanner`.
+- `LanDiscoveryEngine` performing fast parallel subnet sweep across `/24` network ranges, detecting responsive IP addresses and hostnames.
+- `LanDiscoverySheet` interactive subnet scanner in Pocket with 1-tap "Add to Space" action.
+- `AddHostSheet` modal dialog in Sessions to configure host label, IP/address, port, protocol (SSH/Telnet), and username.
+- Full unit test coverage for `WolEngine`, `WifiInspectorEngine`, `LanPortScanner`, and `LanDiscoveryEngine`.
 - 100% compliance with `Android.md` tokens, physics, and presets via `VerifyAndroidRulesTask`.
 
 ## Out Of Scope
