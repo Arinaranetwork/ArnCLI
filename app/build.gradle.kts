@@ -287,7 +287,7 @@ abstract class VerifyAndroidRulesTask : DefaultTask() {
             val total = violations.size
             val fileCount = violations.map { it.substringBefore(':') }.distinct().size
             println("\n" + "=".repeat(80))
-            println("❌ ANDROID.MD RULES VIOLATION REPORT - $total VIOLATION(S) ACROSS $fileCount FILE(S)")
+            println("[ERROR] ANDROID.MD RULES VIOLATION REPORT - $total VIOLATION(S) ACROSS $fileCount FILE(S)")
             println("=".repeat(80))
             violations.forEach { println("  • $it") }
             println("=".repeat(80) + "\n")
@@ -304,7 +304,50 @@ abstract class VerifyAndroidRulesTask : DefaultTask() {
                 throw GradleException("Build canceled: $total Android.md rule violation(s) detected across $fileCount file(s). Comply with Android.md to proceed.")
             }
         } else {
-            println("\n✅ [verifyAndroidRules] All UI screens fully comply with Android.md design tokens, presets, and physics!\n")
+            println("\n[OK] [verifyAndroidRules] All UI screens fully comply with Android.md design tokens, presets, and physics!\n")
+        }
+    }
+}
+
+abstract class VerifyNoEmojisTask : DefaultTask() {
+    @get:InputDirectory
+    abstract val projectDir: DirectoryProperty
+
+    @TaskAction
+    fun verify() {
+        val root = projectDir.get().asFile
+        if (!root.exists()) return
+
+        val emojiPattern = Regex("""[\uD83C-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u26FF]|[\u2700-\u270F]|[\u2715-\u27BF]|[\u231A-\u231B]|[\u23E9-\u23F3]|[\u23F8-\u23FA]|[\u2B50\u2B55]""")
+        val textExtensions = setOf("kt", "java", "xml", "gradle", "kts", "properties", "json", "md", "txt")
+        val ignoredDirs = setOf("build", ".gradle", ".git", ".idea", ".gradle-cache")
+
+        val violations = mutableListOf<String>()
+
+        root.walkTopDown()
+            .onEnter { dir -> dir.name !in ignoredDirs }
+            .filter { it.isFile && it.extension.lowercase() in textExtensions }
+            .forEach { file ->
+                val relPath = file.relativeTo(root).path.replace('\\', '/')
+                file.useLines { lines ->
+                    lines.forEachIndexed { index, line ->
+                        if (emojiPattern.containsMatchIn(line)) {
+                            val match = emojiPattern.find(line)?.value ?: ""
+                            violations.add("[$relPath:${index + 1}] Prohibited emoji detected: '$match'. Emojis anywhere in the codebase or project files are strictly forbidden.")
+                        }
+                    }
+                }
+            }
+
+        if (violations.isNotEmpty()) {
+            println("\n" + "=".repeat(80))
+            println("[ERROR] EMOJI ENFORCEMENT VIOLATION REPORT - ${violations.size} VIOLATION(S)")
+            println("=".repeat(80))
+            violations.forEach { println("  * $it") }
+            println("=".repeat(80) + "\n")
+            throw GradleException("Build canceled: Found ${violations.size} prohibited emoji(s) in codebase. Remove all emojis to comply with project standards.")
+        } else {
+            println("[OK] [verifyNoEmojis] 0 emojis detected across project files. Strict emoji prohibition verified!")
         }
     }
 }
@@ -315,12 +358,16 @@ val verifyAndroidRules = tasks.register<VerifyAndroidRulesTask>("verifyAndroidRu
     auditOnly.set(project.hasProperty("auditAndroidRulesOnly"))
 }
 
+val verifyNoEmojis = tasks.register<VerifyNoEmojisTask>("verifyNoEmojis") {
+    projectDir.set(project.projectDir)
+}
+
 tasks.named("preBuild").configure {
-    dependsOn(verifyAndroidRules)
+    dependsOn(verifyAndroidRules, verifyNoEmojis)
 }
 
 tasks.matching { it.name in listOf("preDebugUnitTestBuild", "testDebugUnitTest", "assembleDebug", "assembleRelease", "check") }.configureEach {
-    dependsOn(verifyAndroidRules)
+    dependsOn(verifyAndroidRules, verifyNoEmojis)
 }
 
 kotlin {

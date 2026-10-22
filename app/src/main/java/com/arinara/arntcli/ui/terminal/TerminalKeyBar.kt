@@ -152,7 +152,7 @@ fun TerminalKeyBar(
                 .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             Text(
-                text = "⚡ Runbook",
+                text = "Runbook",
                 fontFamily = ElmsSans,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
