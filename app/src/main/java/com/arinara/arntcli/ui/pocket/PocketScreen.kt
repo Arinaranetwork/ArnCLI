@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AltRoute
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.NetworkPing
@@ -134,6 +135,15 @@ fun PocketScreen(
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { onToolSelected("discovery") }
+        )
+
+        AppListItem(
+            title = "Route Traceroute",
+            subtitle = "Trace network hops and hop-by-hop latency",
+            leadingIcon = Icons.Outlined.AltRoute,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = { onToolSelected("traceroute") }
         )
 
         BottomClearanceSpacer()

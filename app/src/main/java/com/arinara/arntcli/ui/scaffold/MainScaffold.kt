@@ -58,16 +58,20 @@ import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.pocket.PortScannerSheet
 import com.arinara.arntcli.ui.pocket.SslInspectorSheet
 import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
+import com.arinara.arntcli.ui.pocket.TracerouteSheet
 import com.arinara.arntcli.ui.pocket.WifiInspectorSheet
 import com.arinara.arntcli.ui.pocket.WolSheet
 import com.arinara.arntcli.ui.sessions.AddHostSheet
 import com.arinara.arntcli.ui.sessions.SessionsScreen
 import com.arinara.arntcli.ui.settings.SettingsScreen
+import com.arinara.arntcli.ui.space.AddSpaceSheet
 import com.arinara.arntcli.ui.space.SpaceSwitcherSheet
 import com.arinara.arntcli.ui.terminal.TerminalScreen
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
+import com.arinara.arntcli.ui.vault.AddCredentialSheet
+import com.arinara.arntcli.ui.vault.CredentialDetailSheet
 import com.arinara.arntcli.ui.vault.VaultScreen
 
 enum class MainDestination {
@@ -94,9 +98,13 @@ fun MainScaffold(
     var isWolSheetVisible by remember { mutableStateOf(false) }
     var isWifiInspectorVisible by remember { mutableStateOf(false) }
     var isPortScannerVisible by remember { mutableStateOf(false) }
+    var isTracerouteVisible by remember { mutableStateOf(false) }
     var isAddHostVisible by remember { mutableStateOf(false) }
     var isDiscoveryVisible by remember { mutableStateOf(false) }
     var prefilledDiscoveryHost by remember { mutableStateOf<DiscoveredHost?>(null) }
+    var isAddSpaceVisible by remember { mutableStateOf(false) }
+    var isAddCredentialVisible by remember { mutableStateOf(false) }
+    var selectedCredentialDetail by remember { mutableStateOf<VaultCredential?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
     val processEngine = remember { LocalProcessEngine() }
@@ -319,6 +327,7 @@ fun MainScaffold(
                                 "wifi" -> isWifiInspectorVisible = true
                                 "portscan" -> isPortScannerVisible = true
                                 "discovery" -> isDiscoveryVisible = true
+                                "traceroute" -> isTracerouteVisible = true
                             }
                         }
                     )
@@ -329,7 +338,8 @@ fun MainScaffold(
                         isVaultUnlocked = isVaultUnlocked,
                         credentials = spaceCredentials,
                         onToggleVaultLock = { isVaultUnlocked = !isVaultUnlocked },
-                        onAddCredentialClick = { }
+                        onAddCredentialClick = { isAddCredentialVisible = true },
+                        onCredentialClick = { cred -> selectedCredentialDetail = cred }
                     )
                 }
                 MainDestination.Settings -> {
@@ -352,7 +362,47 @@ fun MainScaffold(
                 selectedSpaceId = chosen.id
                 spaces = spaces.map { it.copy(isSelected = it.id == chosen.id) }
             },
-            onAddSpaceClick = { isSpaceSheetVisible = false }
+            onAddSpaceClick = {
+                isSpaceSheetVisible = false
+                isAddSpaceVisible = true
+            }
+        )
+
+        // Create Space Bottom Sheet
+        AddSpaceSheet(
+            visible = isAddSpaceVisible,
+            onDismiss = { isAddSpaceVisible = false },
+            onSpaceCreated = { newSpace ->
+                spaces = spaces + newSpace
+                selectedSpaceId = newSpace.id
+            }
+        )
+
+        // Add Vault Credential Bottom Sheet
+        AddCredentialSheet(
+            visible = isAddCredentialVisible,
+            onDismiss = { isAddCredentialVisible = false },
+            activeSpaceId = activeSpace.id,
+            onSaveCredential = { newCred ->
+                credentials = credentials + newCred
+            }
+        )
+
+        // Credential Detail Bottom Sheet
+        CredentialDetailSheet(
+            visible = selectedCredentialDetail != null,
+            onDismiss = { selectedCredentialDetail = null },
+            credential = selectedCredentialDetail,
+            onDeleteCredential = { toDelete ->
+                credentials = credentials.filterNot { it.id == toDelete.id }
+                selectedCredentialDetail = null
+            }
+        )
+
+        // Route Traceroute Bottom Sheet
+        TracerouteSheet(
+            visible = isTracerouteVisible,
+            onDismiss = { isTracerouteVisible = false }
         )
 
         // Subnet & CIDR Calculator Bottom Sheet

@@ -32,5 +32,6 @@ data class VaultCredential(
     val type: CredentialType,
     val description: String,
     val spaceId: String,
+    val encryptedSecret: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )

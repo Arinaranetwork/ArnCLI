@@ -1,11 +1,14 @@
 # Phase 3 - NetworkReconnaissance
 ## Goal
-Expand Pocket diagnostics and network reconnaissance capabilities by delivering:
+Expand Pocket diagnostics, cryptographic vault security, and workspace isolation by delivering:
 1. Wake-on-LAN magic packet dispatcher (`WolEngine` & `WolSheet`) for booting local servers and workstations over the network.
 2. Wi-Fi live network inspector (`WifiInspectorEngine` & `WifiInspectorSheet`) reporting SSID, BSSID, link speed, frequency band (2.4 / 5 / 6 GHz), and signal strength.
 3. Fast on-device TCP Port Scanner (`LanPortScanner` & `PortScannerSheet`) probing common infrastructure ports with latency tracking.
 4. Local Subnet Host Discovery (`LanDiscoveryEngine` & `LanDiscoverySheet`) scanning active IP addresses and resolving hostnames with 1-tap host import.
 5. Host Registration and Space Management (`AddHostSheet` in `SessionsScreen`) for creating and launching remote terminal host sessions.
+6. Rootless Visual Traceroute (`TracerouteEngine` & `TracerouteSheet`) tracing intermediate router hops, round-trip times, and hop losses.
+7. AES-256-GCM Cryptographic Vault Engine (`VaultEngine`, `AddCredentialSheet`, `CredentialDetailSheet`) for secure credential storage, decryption, and clipboard masking.
+8. Dynamic Space Environment Creation (`AddSpaceSheet`) for isolated multi-tenant operations.
 
 ## Scope
 - `WolEngine` constructing RFC-standard 102-byte magic packets (6x 0xFF prefix followed by 16x MAC repetitions) and broadcasting via UDP socket.
@@ -17,7 +20,10 @@ Expand Pocket diagnostics and network reconnaissance capabilities by delivering:
 - `LanDiscoveryEngine` performing fast parallel subnet sweep across `/24` network ranges, detecting responsive IP addresses and hostnames.
 - `LanDiscoverySheet` interactive subnet scanner in Pocket with 1-tap "Add to Space" action.
 - `AddHostSheet` modal dialog in Sessions to configure host label, IP/address, port, protocol (SSH/Telnet), and username.
-- Full unit test coverage for `WolEngine`, `WifiInspectorEngine`, `LanPortScanner`, and `LanDiscoveryEngine`.
+- `TracerouteEngine` performing hop-by-hop route discovery via rootless TTL stepping with interactive `TracerouteSheet`.
+- `VaultEngine` implementing authenticated AES-256-GCM symmetric encryption with PBKDF2 key derivation, supporting credential addition, inspection, and deletion via `AddCredentialSheet` and `CredentialDetailSheet`.
+- `AddSpaceSheet` for provisioning dedicated workspaces with custom routing parameters.
+- Full unit test coverage for `WolEngine`, `WifiInspectorEngine`, `LanPortScanner`, `LanDiscoveryEngine`, `TracerouteEngine`, and `VaultEngine`.
 - 100% compliance with `Android.md` tokens, physics, and presets via `VerifyAndroidRulesTask`.
 
 ## Out Of Scope

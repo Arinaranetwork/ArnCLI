@@ -61,6 +61,7 @@ fun VaultScreen(
     credentials: List<VaultCredential>,
     onToggleVaultLock: () -> Unit,
     onAddCredentialClick: () -> Unit,
+    onCredentialClick: (VaultCredential) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -171,13 +172,28 @@ fun VaultScreen(
                 }
             }
         } else {
-            Text(
-                text = "Stored Cryptographic Credentials",
-                fontFamily = ElmsSans,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = ElectricSlateTokens.TextPrimary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Stored Credentials (${credentials.size})",
+                    fontFamily = ElmsSans,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = ElectricSlateTokens.TextPrimary
+                )
+
+                if (isVaultUnlocked) {
+                    AppButton(
+                        text = "Add",
+                        leadingIcon = Icons.Outlined.Add,
+                        variant = AppButtonVariant.Secondary,
+                        onClick = onAddCredentialClick
+                    )
+                }
+            }
 
             credentials.forEach { cred ->
                 val icon = when (cred.type) {
@@ -193,7 +209,7 @@ fun VaultScreen(
                     leadingIcon = icon,
                     leadingIconTint = ElectricSlateTokens.PrimaryAccent,
                     action = AppListItemAction.Chevron,
-                    onClick = { }
+                    onClick = { onCredentialClick(cred) }
                 )
             }
         }
