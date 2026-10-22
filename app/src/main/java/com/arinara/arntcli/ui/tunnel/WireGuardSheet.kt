@@ -54,6 +54,7 @@ import com.arinara.arntcli.ui.components.presets.AppButton
 import com.arinara.arntcli.ui.components.presets.AppButtonVariant
 import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppPillChip
+import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
 import com.arinara.arntcli.ui.model.CredentialType
 import com.arinara.arntcli.ui.model.VaultCredential
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
@@ -353,7 +354,7 @@ fun WireGuardSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            BottomClearanceSpacer()
         }
     }
 }

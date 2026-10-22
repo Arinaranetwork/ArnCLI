@@ -121,4 +121,20 @@ class WireGuardConfigParserTest {
         val result = WireGuardConfigParser.parse("bad", conf)
         assertTrue(result.isFailure)
     }
+
+    @Test
+    fun parse_invalidListenPort_fails() {
+        val conf = """
+            [Interface]
+            PrivateKey = $validPrivKey
+            Address = 10.0.0.1/24
+            ListenPort = not-a-number
+
+            [Peer]
+            PublicKey = $validPubKey1
+        """.trimIndent()
+
+        val result = WireGuardConfigParser.parse("bad-port", conf)
+        assertTrue(result.isFailure)
+    }
 }

@@ -69,6 +69,7 @@ import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppNoticeBanner
 import com.arinara.arntcli.ui.components.presets.AppNoticeVariant
 import com.arinara.arntcli.ui.components.presets.AppPillChip
+import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
@@ -113,9 +114,9 @@ fun AirGappedSyncSheet(
     var speed by remember { mutableStateOf(CycleSpeed.Standard) }
     var isCopied by remember { mutableStateOf(false) }
 
-    // Automatic Frame Cycling
-    LaunchedEffect(isPlaying, speed, frames.size) {
-        if (isPlaying && frames.isNotEmpty()) {
+    // Automatic Frame Cycling (guarded by visible to prevent background battery drain)
+    LaunchedEffect(visible, isPlaying, speed, frames.size) {
+        if (visible && isPlaying && frames.isNotEmpty()) {
             while (true) {
                 delay(speed.intervalMs)
                 currentFrameIndex = (currentFrameIndex + 1) % frames.size
@@ -612,7 +613,7 @@ fun AirGappedSyncSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            BottomClearanceSpacer()
         }
     }
 }

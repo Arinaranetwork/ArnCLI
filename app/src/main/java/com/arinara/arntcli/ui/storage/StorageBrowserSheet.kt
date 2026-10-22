@@ -61,6 +61,7 @@ import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppListItem
 import com.arinara.arntcli.ui.components.presets.AppListItemAction
 import com.arinara.arntcli.ui.components.presets.AppPillChip
+import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
@@ -281,7 +282,7 @@ fun StorageBrowserSheet(
                         subtitle = subtitle,
                         leadingIcon = icon,
                         leadingIconTint = iconTint,
-                        action = if (node.isDirectory) AppListItemAction.Chevron else AppListItemAction.None,
+                        action = if (node.isDirectory) AppListItemAction.Chevron else null,
                         onClick = {
                             if (node.isDirectory) {
                                 engine.cd(node.name)
@@ -353,7 +354,7 @@ fun StorageBrowserSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            BottomClearanceSpacer()
         }
     }
 }

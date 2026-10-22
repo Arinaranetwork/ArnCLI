@@ -99,21 +99,24 @@ class IcmpPingEngine {
             }
 
             val process = ProcessBuilder(pingCmd).redirectErrorStream(true).start()
-            val reader = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
-
-            reader.use { r ->
-                var line: String?
-                while (r.readLine().also { line = it } != null) {
-                    val currentLine = line ?: continue
-                    val sample = parsePingLine(currentLine, sequence, cleanHost, resolvedIp)
-                    if (sample != null) {
-                        nativePingSuccess = true
-                        emit(sample)
-                        sequence++
+            try {
+                val reader = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
+                reader.use { r ->
+                    var line: String?
+                    while (r.readLine().also { line = it } != null) {
+                        val currentLine = line ?: continue
+                        val sample = parsePingLine(currentLine, sequence, cleanHost, resolvedIp)
+                        if (sample != null) {
+                            nativePingSuccess = true
+                            emit(sample)
+                            sequence++
+                        }
                     }
                 }
+                process.waitFor()
+            } finally {
+                process.destroyForcibly()
             }
-            process.waitFor()
         } catch (_: Exception) {
             nativePingSuccess = false
         }

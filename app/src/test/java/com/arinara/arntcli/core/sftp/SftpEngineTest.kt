@@ -63,8 +63,12 @@ class SftpEngineTest {
         engine.cd("user")
         assertEquals("/home/user", engine.currentPath.value)
 
+        // Test absolute path navigation
+        engine.cd("/etc/nginx")
+        assertEquals("/etc/nginx", engine.currentPath.value)
+
         assertTrue(engine.cdUp())
-        assertEquals("/home", engine.currentPath.value)
+        assertEquals("/etc", engine.currentPath.value)
 
         assertTrue(engine.cdUp())
         assertEquals("/", engine.currentPath.value)

@@ -83,6 +83,9 @@ class BcUrSyncEngine(
 
             val seq = seqParts[0].toIntOrNull() ?: return false
             val total = seqParts[1].toIntOrNull() ?: return false
+            if (total <= 0 || total > 2000) return false
+            if (seq !in 1..total) return false
+
             val crcHex = parts[1]
             val chunkBase64 = parts[2]
 
@@ -121,7 +124,13 @@ class BcUrSyncEngine(
                 return Result.failure(IllegalStateException("Missing frames in sequence"))
             }
 
-            val fullBuffer = totalBytes.reduce { acc, bytes -> acc + bytes }
+            val totalLength = totalBytes.sumOf { it.size }
+            val fullBuffer = ByteArray(totalLength)
+            var cursor = 0
+            for (chunk in totalBytes) {
+                System.arraycopy(chunk, 0, fullBuffer, cursor, chunk.size)
+                cursor += chunk.size
+            }
             val actualCrc = computeCrc32Hex(fullBuffer)
 
             if (!actualCrc.equals(expectedCrc, ignoreCase = true)) {

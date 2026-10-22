@@ -75,7 +75,7 @@ class WireGuardConfigParser {
 
                 if (line.startsWith("[") && line.endsWith("]")) {
                     val sectionName = line.substring(1, line.length - 1).trim()
-                    if (sectionName.equals("Peer", ignoreCase = true)) {
+                    if (currentSection.equals("Peer", ignoreCase = true)) {
                         commitCurrentPeer()
                     }
                     currentSection = sectionName
@@ -93,8 +93,8 @@ class WireGuardConfigParser {
                             "privatekey" -> privateKey = value
                             "address" -> addresses.addAll(value.split(',').map { it.trim() }.filter { it.isNotBlank() })
                             "dns" -> dnsServers.addAll(value.split(',').map { it.trim() }.filter { it.isNotBlank() })
-                            "listenport" -> listenPort = value.toIntOrNull()
-                            "mtu" -> mtu = value.toIntOrNull()
+                            "listenport" -> listenPort = value.toIntOrNull() ?: throw IllegalArgumentException("Invalid ListenPort: '$value'")
+                            "mtu" -> mtu = value.toIntOrNull() ?: throw IllegalArgumentException("Invalid MTU: '$value'")
                         }
                     }
                     "peer" -> {
@@ -103,7 +103,7 @@ class WireGuardConfigParser {
                             "endpoint" -> currentPeerEndpoint = value
                             "presharedkey" -> currentPeerPresharedKey = value
                             "allowedips" -> currentPeerAllowedIps.addAll(value.split(',').map { it.trim() }.filter { it.isNotBlank() })
-                            "persistentkeepalive" -> currentPeerKeepalive = value.toIntOrNull()
+                            "persistentkeepalive" -> currentPeerKeepalive = value.toIntOrNull() ?: throw IllegalArgumentException("Invalid PersistentKeepalive: '$value'")
                         }
                     }
                 }

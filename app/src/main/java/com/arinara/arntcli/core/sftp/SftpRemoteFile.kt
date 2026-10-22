@@ -83,7 +83,6 @@ data class SftpRemoteFile(
      * Formats permissions as octal string (e.g. "0755").
      */
     fun toOctalString(): String {
-        val oct = permissionsOctal and 0x1FF
-        return "0" + Integer.toOctalString(oct)
+        return String.format(Locale.US, "%04o", permissionsOctal and 0x1FF)
     }
 }

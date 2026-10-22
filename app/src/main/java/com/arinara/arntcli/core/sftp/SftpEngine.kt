@@ -52,10 +52,10 @@ class SftpEngine(
     }
 
     fun cd(directoryName: String) {
-        val target = if (_currentPath.value == "/") {
-            "/$directoryName"
-        } else {
-            "${_currentPath.value}/$directoryName"
+        val target = when {
+            directoryName.startsWith("/") -> directoryName
+            _currentPath.value == "/" -> "/$directoryName"
+            else -> "${_currentPath.value}/$directoryName"
         }
         val normalized = normalizePath(target)
         _currentPath.value = normalized

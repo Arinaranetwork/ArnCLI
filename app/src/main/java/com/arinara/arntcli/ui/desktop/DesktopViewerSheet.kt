@@ -51,6 +51,7 @@ import com.arinara.arntcli.ui.components.presets.AppButton
 import com.arinara.arntcli.ui.components.presets.AppButtonVariant
 import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppPillChip
+import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 
@@ -314,7 +315,7 @@ fun DesktopViewerSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            BottomClearanceSpacer()
         }
     }
 }
