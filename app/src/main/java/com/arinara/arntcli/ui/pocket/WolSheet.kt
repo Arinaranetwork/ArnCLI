@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.arinara.arntcli.core.net.IeeeOuiLookupEngine
 import com.arinara.arntcli.core.net.WolEngine
 import com.arinara.arntcli.core.net.WolResult
 import com.arinara.arntcli.ui.components.presets.AppBottomSheet
@@ -61,9 +62,9 @@ fun WolSheet(
     modifier: Modifier = Modifier
 ) {
     val presetMacs = listOf(
-        "00:11:22:33:44:55",
-        "BC:24:11:8A:F2:01",
-        "E4:5F:01:92:AB:33"
+        "B8:27:EB:4A:89:12",
+        "E4:5F:01:92:AB:33",
+        "00:15:6D:88:99:AA"
     )
 
     var targetMac by remember { mutableStateOf(presetMacs.first()) }
@@ -74,6 +75,8 @@ fun WolSheet(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val engine = remember { WolEngine() }
+    val ouiEngine = remember { IeeeOuiLookupEngine() }
+    val detectedVendor = remember(targetMac) { ouiEngine.lookupVendor(targetMac) }
     val coroutineScope = rememberCoroutineScope()
 
     AppBottomSheet(
@@ -124,6 +127,16 @@ fun WolSheet(
                     ),
                     cursorBrush = SolidColor(ElectricSlateTokens.PrimaryAccent),
                     modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (detectedVendor != null) {
+                Text(
+                    text = "Hardware Vendor: $detectedVendor",
+                    fontFamily = ElmsSans,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    color = ElectricSlateTokens.PrimaryAccent
                 )
             }
 
