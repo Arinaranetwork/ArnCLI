@@ -97,11 +97,15 @@ class LanPortScanner {
         timeoutMs: Int = 1000
     ): Result<PortScanResult> = withContext(Dispatchers.IO) {
         runCatching {
-            val cleanHost = targetHost.trim()
+            var cleanHost = targetHost.trim()
                 .removePrefix("https://")
                 .removePrefix("http://")
                 .substringBefore('/')
-                .substringBefore(':')
+            if (cleanHost.startsWith("[") && cleanHost.contains("]")) {
+                cleanHost = cleanHost.substringAfter("[").substringBefore("]")
+            } else if (cleanHost.count { it == ':' } == 1) {
+                cleanHost = cleanHost.substringBefore(':')
+            }
             require(cleanHost.isNotBlank()) { "Target host or IP address cannot be blank" }
             require(ports.isNotEmpty()) { "Port list cannot be empty" }
 
@@ -109,20 +113,22 @@ class LanPortScanner {
             val resolvedAddress = InetAddress.getByName(cleanHost)
             val resolvedIp = resolvedAddress.hostAddress ?: cleanHost
 
-            val portDeferreds = ports.map { port ->
-                async {
-                    scanPort(cleanHost, port, timeoutMs)
-                }
+            val results = mutableListOf<PortStatus>()
+            // Chunk concurrency to 30 simultaneous sockets to prevent EMFILE socket exhaustion
+            for (chunk in ports.chunked(30)) {
+                val chunkResults = chunk.map { port ->
+                    async { scanPort(cleanHost, port, timeoutMs) }
+                }.awaitAll()
+                results.addAll(chunkResults)
             }
-
-            val results = portDeferreds.awaitAll().sortedBy { it.port }
-            val openCount = results.count { it.isOpen }
+            val sortedResults = results.sortedBy { it.port }
+            val openCount = sortedResults.count { it.isOpen }
             val durationMs = (System.nanoTime() - startNano) / 1_000_000.0
 
             PortScanResult(
                 targetHost = cleanHost,
                 resolvedIp = resolvedIp,
-                scannedPorts = results,
+                scannedPorts = sortedResults,
                 openPortCount = openCount,
                 durationMs = durationMs
             )

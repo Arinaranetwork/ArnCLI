@@ -7,6 +7,7 @@
 package com.arinara.arntcli.core.terminal
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -78,38 +79,48 @@ class LocalProcessEngine(
             process.waitFor()
         } finally {
             reader.close()
-            process.destroy()
+            process.destroyForcibly()
         }
     }.flowOn(Dispatchers.IO)
 
     /**
      * Executes a command synchronously and returns the complete exit code and output.
+     * Reads stdout and stderr concurrently to prevent pipe buffer deadlocks.
      */
     suspend fun execute(command: String): ShellResult = withContext(Dispatchers.IO) {
         val processBuilder = createProcessBuilder(command)
-
         val process = processBuilder.start()
-        val outputLines = mutableListOf<String>()
-        val errorLines = mutableListOf<String>()
 
-        val outReader = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
-        val errReader = BufferedReader(InputStreamReader(process.errorStream, Charsets.UTF_8))
-
-        outReader.use { out ->
-            var line: String?
-            while (out.readLine().also { line = it } != null) {
-                line?.let { outputLines.add(it) }
+        try {
+            val outDeferred = async(Dispatchers.IO) {
+                val lines = mutableListOf<String>()
+                BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8)).use { out ->
+                    var line: String?
+                    while (out.readLine().also { line = it } != null) {
+                        line?.let { lines.add(it) }
+                    }
+                }
+                lines
             }
-        }
 
-        errReader.use { err ->
-            var line: String?
-            while (err.readLine().also { line = it } != null) {
-                line?.let { errorLines.add(it) }
+            val errDeferred = async(Dispatchers.IO) {
+                val lines = mutableListOf<String>()
+                BufferedReader(InputStreamReader(process.errorStream, Charsets.UTF_8)).use { err ->
+                    var line: String?
+                    while (err.readLine().also { line = it } != null) {
+                        line?.let { lines.add(it) }
+                    }
+                }
+                lines
             }
-        }
 
-        val exitCode = process.waitFor()
-        ShellResult(exitCode = exitCode, output = outputLines, errors = errorLines)
+            val outputLines = outDeferred.await()
+            val errorLines = errDeferred.await()
+            val exitCode = process.waitFor()
+
+            ShellResult(exitCode = exitCode, output = outputLines, errors = errorLines)
+        } finally {
+            process.destroyForcibly()
+        }
     }
 }

@@ -84,6 +84,18 @@ class SubnetCalculatorTest {
     }
 
     @Test
+    fun calculate_apipaLinkLocal_classifiesCorrectly() {
+        val result = SubnetCalculator.calculate("169.254.10.20/16").getOrThrow()
+        assertEquals("Link-Local / APIPA (RFC 3927)", result.ipClass)
+    }
+
+    @Test
+    fun calculate_cgnatSharedSpace_classifiesCorrectly() {
+        val result = SubnetCalculator.calculate("100.64.0.1/10").getOrThrow()
+        assertEquals("Shared CGNAT Space (RFC 6598)", result.ipClass)
+    }
+
+    @Test
     fun calculate_invalidInputs_returnFailure() {
         assertTrue(SubnetCalculator.calculate("192.168.1.1").isFailure)
         assertTrue(SubnetCalculator.calculate("192.168.1.1/33").isFailure)

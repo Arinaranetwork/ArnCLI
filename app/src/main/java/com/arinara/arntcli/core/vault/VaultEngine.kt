@@ -6,6 +6,8 @@
 
 package com.arinara.arntcli.core.vault
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.security.SecureRandom
 import javax.crypto.Cipher
@@ -25,7 +27,7 @@ class VaultEngine {
         private const val ALGORITHM = "AES/GCM/NoPadding"
         private const val KEY_ALGORITHM = "AES"
         private const val KDF_ALGORITHM = "PBKDF2WithHmacSHA256"
-        private const val ITERATION_COUNT = 10_000
+        private const val ITERATION_COUNT = 100_000
         private const val KEY_LENGTH_BITS = 256
         private const val SALT_LENGTH_BYTES = 16
         private const val IV_LENGTH_BYTES = 12
@@ -35,9 +37,13 @@ class VaultEngine {
 
         fun deriveKey(passphrase: String, salt: ByteArray): SecretKeySpec {
             val spec = PBEKeySpec(passphrase.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH_BITS)
-            val factory = SecretKeyFactory.getInstance(KDF_ALGORITHM)
-            val keyBytes = factory.generateSecret(spec).encoded
-            return SecretKeySpec(keyBytes, KEY_ALGORITHM)
+            try {
+                val factory = SecretKeyFactory.getInstance(KDF_ALGORITHM)
+                val keyBytes = factory.generateSecret(spec).encoded
+                return SecretKeySpec(keyBytes, KEY_ALGORITHM)
+            } finally {
+                spec.clearPassword()
+            }
         }
 
         fun maskSecret(secret: String): String {
@@ -50,7 +56,7 @@ class VaultEngine {
      * Encrypts plaintext string using AES-256-GCM.
      * Returns Base64-encoded payload: salt [16 bytes] + iv [12 bytes] + ciphertext & tag.
      */
-    fun encrypt(plaintext: String, passphrase: String): String {
+    fun encryptBlocking(plaintext: String, passphrase: String): String {
         require(passphrase.isNotBlank()) { "Vault passphrase cannot be blank" }
 
         val salt = ByteArray(SALT_LENGTH_BYTES).also { secureRandom.nextBytes(it) }
@@ -71,10 +77,14 @@ class VaultEngine {
         return Base64.getEncoder().encodeToString(buffer.array())
     }
 
+    suspend fun encrypt(plaintext: String, passphrase: String): String = withContext(Dispatchers.IO) {
+        encryptBlocking(plaintext, passphrase)
+    }
+
     /**
      * Decrypts Base64-encoded AES-256-GCM payload.
      */
-    fun decrypt(encryptedBase64: String, passphrase: String): String {
+    fun decryptBlocking(encryptedBase64: String, passphrase: String): String {
         require(passphrase.isNotBlank()) { "Vault passphrase cannot be blank" }
 
         val payload = Base64.getDecoder().decode(encryptedBase64)
@@ -92,5 +102,9 @@ class VaultEngine {
 
         val decryptedBytes = cipher.doFinal(ciphertext)
         return String(decryptedBytes, Charsets.UTF_8)
+    }
+
+    suspend fun decrypt(encryptedBase64: String, passphrase: String): String = withContext(Dispatchers.IO) {
+        decryptBlocking(encryptedBase64, passphrase)
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,8 +84,10 @@ fun CredentialDetailSheet(
         sdf.format(Date(credential.createdAt))
     }
 
-    val decryptedSecret = remember(credential.encryptedSecret, vaultPassphrase) {
-        if (credential.encryptedSecret.isBlank()) {
+    var decryptedSecret by remember(credential.id) { mutableStateOf("") }
+
+    LaunchedEffect(credential.encryptedSecret, vaultPassphrase) {
+        decryptedSecret = if (credential.encryptedSecret.isBlank()) {
             ""
         } else {
             try {

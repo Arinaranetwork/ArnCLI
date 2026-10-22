@@ -49,7 +49,7 @@ class IeeeOuiLookupEngine {
             "A4E57C" to "Espressif Inc.",
             "AC67B2" to "Espressif Inc.",
             "B4E62D" to "Espressif Inc.",
-            "BCDC2" to "Espressif Inc.",
+            "BCDD2C" to "Espressif Inc.",
             "C44F33" to "Espressif Inc.",
             "C82B96" to "Espressif Inc.",
             "CC50E3" to "Espressif Inc.",

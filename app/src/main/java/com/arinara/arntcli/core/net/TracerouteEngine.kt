@@ -136,11 +136,15 @@ class TracerouteEngine(
         targetHost: String,
         maxHops: Int = DEFAULT_MAX_HOPS
     ): Flow<RouteHop> = flow {
-        val cleanHost = targetHost.trim()
+        var cleanHost = targetHost.trim()
             .removePrefix("https://")
             .removePrefix("http://")
             .substringBefore('/')
-            .substringBefore(':')
+        if (cleanHost.startsWith("[") && cleanHost.contains("]")) {
+            cleanHost = cleanHost.substringAfter("[").substringBefore("]")
+        } else if (cleanHost.count { it == ':' } == 1) {
+            cleanHost = cleanHost.substringBefore(':')
+        }
         require(cleanHost.isNotBlank()) { "Target host cannot be blank" }
 
         val resolvedIp = try {

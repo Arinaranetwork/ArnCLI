@@ -47,6 +47,7 @@ import com.arinara.arntcli.ui.theme.jiggleShakeClickable
 sealed interface AppListItemAction {
     object Chevron : AppListItemAction
     data class Toggle(val checked: Boolean, val onCheckedChange: (Boolean) -> Unit) : AppListItemAction
+    data class Switch(val checked: Boolean, val onCheckedChange: (Boolean) -> Unit) : AppListItemAction
     data class ShakingTrash(val onDelete: () -> Unit) : AppListItemAction
     data class Custom(val content: @Composable () -> Unit) : AppListItemAction
 }
@@ -129,6 +130,12 @@ fun AppListItem(
                     )
                 }
                 is AppListItemAction.Toggle -> {
+                    BouncySwitch(
+                        checked = action.checked,
+                        onCheckedChange = action.onCheckedChange
+                    )
+                }
+                is AppListItemAction.Switch -> {
                     BouncySwitch(
                         checked = action.checked,
                         onCheckedChange = action.onCheckedChange

@@ -6,6 +6,7 @@
 
 package com.arinara.arntcli.core.vault
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -18,7 +19,7 @@ class VaultEngineTest {
     private val passphrase = "super-secret-master-passphrase-2026"
 
     @Test
-    fun encryptAndDecrypt_roundTripSucceeds() {
+    fun encryptAndDecrypt_roundTripSucceeds() = runBlocking {
         val originalSecret = "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtz\n-----END OPENSSH PRIVATE KEY-----"
 
         val encrypted = engine.encrypt(originalSecret, passphrase)
@@ -31,9 +32,10 @@ class VaultEngineTest {
     }
 
     @Test(expected = Exception::class)
-    fun decrypt_wrongPassphrase_failsAuthentication() {
+    fun decrypt_wrongPassphrase_failsAuthentication() = runBlocking {
         val encrypted = engine.encrypt("my-db-password-1234", passphrase)
         engine.decrypt(encrypted, "wrong-passphrase")
+        Unit
     }
 
     @Test

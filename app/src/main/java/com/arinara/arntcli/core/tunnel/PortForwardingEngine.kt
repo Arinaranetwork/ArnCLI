@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import java.net.InetAddress
 import java.net.ServerSocket
 
 /**
@@ -24,11 +25,11 @@ class PortForwardingEngine {
 
     companion object {
         /**
-         * Checks whether a TCP port on localhost is available for binding.
+         * Checks whether a TCP port on localhost is available for loopback binding.
          */
         suspend fun isPortAvailable(port: Int): Boolean = withContext(Dispatchers.IO) {
             try {
-                ServerSocket(port).use { true }
+                ServerSocket(port, 50, InetAddress.getByName("127.0.0.1")).use { true }
             } catch (_: Exception) {
                 false
             }

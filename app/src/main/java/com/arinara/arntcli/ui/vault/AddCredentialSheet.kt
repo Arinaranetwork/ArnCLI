@@ -33,7 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +76,7 @@ fun AddCredentialSheet(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val vaultEngine = remember { VaultEngine() }
+    val coroutineScope = rememberCoroutineScope()
     val types = listOf(
         CredentialType.SshKey to "SSH Key",
         CredentialType.Password to "Password",
@@ -293,17 +296,23 @@ fun AddCredentialSheet(
                         return@AppButton
                     }
 
-                    val encrypted = vaultEngine.encrypt(secret.trim(), vaultPassphrase)
-                    val newCred = VaultCredential(
-                        id = "cred-${System.currentTimeMillis()}",
-                        title = cleanTitle,
-                        type = selectedType,
-                        description = description.trim().ifBlank { "${selectedType.name} credential" },
-                        spaceId = activeSpaceId,
-                        encryptedSecret = encrypted
-                    )
-                    onSaveCredential(newCred)
-                    onDismiss()
+                    coroutineScope.launch {
+                        try {
+                            val encrypted = vaultEngine.encrypt(secret.trim(), vaultPassphrase)
+                            val newCred = VaultCredential(
+                                id = "cred-${System.currentTimeMillis()}",
+                                title = cleanTitle,
+                                type = selectedType,
+                                description = description.trim().ifBlank { "${selectedType.name} credential" },
+                                spaceId = activeSpaceId,
+                                encryptedSecret = encrypted
+                            )
+                            onSaveCredential(newCred)
+                            onDismiss()
+                        } catch (e: Exception) {
+                            errorMessage = e.message ?: "Encryption failed"
+                        }
+                    }
                 }
             )
 
