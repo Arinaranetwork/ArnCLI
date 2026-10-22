@@ -2,7 +2,7 @@
 Last Updated: 2026-10-22
 
 ## Current Phase
-Phase 5 - WireGuardAndAirGappedSync [Completed]
+Phase 6 - RemoteStorageAndDesktops [Completed]
 
 ## Phases
 | Phase | Name                      | Status      |
@@ -12,6 +12,7 @@ Phase 5 - WireGuardAndAirGappedSync [Completed]
 | 3     | NetworkReconnaissance     | Completed   |
 | 4     | SecureConnectAndTunnels   | Completed   |
 | 5     | WireGuardAndAirGappedSync | Completed   |
+| 6     | RemoteStorageAndDesktops  | Completed   |
 
 ## Completed
 - [x] Task 1: Initialize Gradle build structure, settings, dependencies, and VerifyAndroidRulesTask - Phase 1
@@ -45,6 +46,10 @@ Phase 5 - WireGuardAndAirGappedSync [Completed]
 - [x] Task 29: Implement WireGuard Profile Sheet (WireGuardSheet) - Phase 5
 - [x] Task 30: Implement SFTP Remote File Explorer Engine & Models - Phase 5
 - [x] Task 31: Implement Air-Gapped Vault Sync Engine (BcUrSyncEngine) & AirGappedSyncSheet - Phase 5
+- [x] Task 32: Implement Remote Storage Domain Models & S3 SigV4 Signer - Phase 6
+- [x] Task 33: Implement Storage Explorer UI Sheet (StorageBrowserSheet) - Phase 6
+- [x] Task 34: Implement VNC / Remote Desktop Controller (VncSessionController) - Phase 6
+- [x] Task 35: Wire Remote Storage & Desktop Sessions into Scaffold & Sessions Module - Phase 6
 
 ## In Progress
 

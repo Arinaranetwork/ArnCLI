@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CloudQueue
+import androidx.compose.material.icons.outlined.DesktopWindows
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Storage
@@ -62,6 +64,8 @@ fun SessionsScreen(
     activeTunnelCount: Int = 0,
     onManageTunnelsClick: () -> Unit = {},
     onWireGuardClick: () -> Unit = {},
+    onOpenStorageClick: () -> Unit = {},
+    onOpenDesktopClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -222,6 +226,32 @@ fun SessionsScreen(
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = onWireGuardClick
+        )
+
+        Text(
+            text = "Remote Storage & Desktops",
+            fontFamily = ElmsSans,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = ElectricSlateTokens.TextPrimary
+        )
+
+        AppListItem(
+            title = "Cloud & NAS Storage Explorer",
+            subtitle = "Access SMB 2/3 shares, AWS S3 buckets, and WebDAV",
+            leadingIcon = Icons.Outlined.CloudQueue,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = onOpenStorageClick
+        )
+
+        AppListItem(
+            title = "Remote Desktop (VNC / RDP)",
+            subtitle = "Virtual trackpad controller with mobile keyboard macros",
+            leadingIcon = Icons.Outlined.DesktopWindows,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = onOpenDesktopClick
         )
 
         BottomClearanceSpacer()

@@ -52,12 +52,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
+import com.arinara.arntcli.ui.desktop.DesktopViewerSheet
 import com.arinara.arntcli.ui.pocket.DnsSheet
 import com.arinara.arntcli.ui.pocket.LanDiscoverySheet
 import com.arinara.arntcli.ui.pocket.PingSheet
 import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.pocket.PortScannerSheet
 import com.arinara.arntcli.ui.pocket.SslInspectorSheet
+import com.arinara.arntcli.ui.storage.StorageBrowserSheet
 import com.arinara.arntcli.core.tunnel.PortForwardingEngine
 import com.arinara.arntcli.core.tunnel.TunnelRule
 import com.arinara.arntcli.core.tunnel.TunnelStatus
@@ -115,6 +117,8 @@ fun MainScaffold(
     var isPortForwardingVisible by remember { mutableStateOf(false) }
     var isWireGuardVisible by remember { mutableStateOf(false) }
     var isAirGappedSyncVisible by remember { mutableStateOf(false) }
+    var isStorageBrowserVisible by remember { mutableStateOf(false) }
+    var isDesktopViewerVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
@@ -315,6 +319,8 @@ fun MainScaffold(
                         activeTunnelCount = tunnelRules.count { it.status == TunnelStatus.Active },
                         onManageTunnelsClick = { isPortForwardingVisible = true },
                         onWireGuardClick = { isWireGuardVisible = true },
+                        onOpenStorageClick = { isStorageBrowserVisible = true },
+                        onOpenDesktopClick = { isDesktopViewerVisible = true },
                         onAddHostClick = { isAddHostVisible = true },
                         onHostClick = { host ->
                             val bannerLines = mutableListOf(
@@ -526,6 +532,18 @@ fun MainScaffold(
                 // Unlock vault and accept new imported credentials if present
                 isVaultUnlocked = true
             }
+        )
+
+        // Remote Storage Explorer Bottom Sheet
+        StorageBrowserSheet(
+            visible = isStorageBrowserVisible,
+            onDismiss = { isStorageBrowserVisible = false }
+        )
+
+        // Remote Desktop (VNC / RDP) Viewer Bottom Sheet
+        DesktopViewerSheet(
+            visible = isDesktopViewerVisible,
+            onDismiss = { isDesktopViewerVisible = false }
         )
     }
 }
