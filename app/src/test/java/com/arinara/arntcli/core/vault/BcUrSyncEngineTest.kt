@@ -130,7 +130,7 @@ class BcUrSyncEngineTest {
         assertFalse(receiver.ingestFrame("ur:bytes/"))
         assertFalse(receiver.ingestFrame("ur:bytes/1-2/invalid-no-chunk"))
         assertFalse(receiver.ingestFrame("ur:bytes/abc-def/crc/chunk"))
-        assertFalse(receiver.ingestFrame("ur:bytes/1-2/crc/!@#$not-base64"))
+        assertFalse(receiver.ingestFrame("ur:bytes/1-2/crc/invalid-chars-&&&"))
         assertFalse(receiver.ingestFrame("ur:bytes/5-2/crc/dGVzdA==")) // seq > total
         assertFalse(receiver.ingestFrame("ur:bytes/0-2/crc/dGVzdA==")) // seq 0
         assertFalse(receiver.ingestFrame("ur:bytes/1-0/crc/dGVzdA==")) // total 0

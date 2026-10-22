@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AltRoute
 import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.DeveloperMode
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.NetworkPing
 import androidx.compose.material.icons.outlined.Power
@@ -144,6 +145,23 @@ fun PocketScreen(
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { onToolSelected("traceroute") }
+        )
+
+        Text(
+            text = "Developer & Protocol Lab",
+            fontFamily = ElmsSans,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = ElectricSlateTokens.TextPrimary
+        )
+
+        AppListItem(
+            title = "Protocol & API Lab",
+            subtitle = "REST/GraphQL, WebSocket, MQTT broker & BLE GATT",
+            leadingIcon = Icons.Outlined.DeveloperMode,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = { onToolSelected("devlab") }
         )
 
         BottomClearanceSpacer()

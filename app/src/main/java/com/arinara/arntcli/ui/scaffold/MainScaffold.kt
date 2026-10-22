@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.desktop.DesktopViewerSheet
+import com.arinara.arntcli.ui.devlab.DevLabSheet
 import com.arinara.arntcli.ui.pocket.DnsSheet
 import com.arinara.arntcli.ui.pocket.LanDiscoverySheet
 import com.arinara.arntcli.ui.pocket.PingSheet
@@ -119,6 +120,7 @@ fun MainScaffold(
     var isAirGappedSyncVisible by remember { mutableStateOf(false) }
     var isStorageBrowserVisible by remember { mutableStateOf(false) }
     var isDesktopViewerVisible by remember { mutableStateOf(false) }
+    var isDevLabVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
@@ -358,6 +360,7 @@ fun MainScaffold(
                                 "portscan" -> isPortScannerVisible = true
                                 "discovery" -> isDiscoveryVisible = true
                                 "traceroute" -> isTracerouteVisible = true
+                                "devlab" -> isDevLabVisible = true
                             }
                         }
                     )
@@ -544,6 +547,12 @@ fun MainScaffold(
         DesktopViewerSheet(
             visible = isDesktopViewerVisible,
             onDismiss = { isDesktopViewerVisible = false }
+        )
+
+        // Developer & Protocol Lab Bottom Sheet
+        DevLabSheet(
+            visible = isDevLabVisible,
+            onDismiss = { isDevLabVisible = false }
         )
     }
 }
