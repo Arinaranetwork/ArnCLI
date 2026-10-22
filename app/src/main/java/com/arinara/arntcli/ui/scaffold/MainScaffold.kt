@@ -52,6 +52,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
+import com.arinara.arntcli.ui.automation.WorkflowRunnerSheet
 import com.arinara.arntcli.ui.container.ContainerExplorerSheet
 import com.arinara.arntcli.ui.desktop.DesktopViewerSheet
 import com.arinara.arntcli.ui.devlab.DevLabSheet
@@ -125,6 +126,7 @@ fun MainScaffold(
     var isDevLabVisible by remember { mutableStateOf(false) }
     var isServerTelemetryVisible by remember { mutableStateOf(false) }
     var isContainersVisible by remember { mutableStateOf(false) }
+    var isWorkflowSheetVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
@@ -314,7 +316,8 @@ fun MainScaffold(
                             activeSessionJobs[sessionId]?.cancel()
                             activeSessionJobs.remove(sessionId)
                             sessions = sessions.filterNot { it.id == sessionId }
-                        }
+                        },
+                        onOpenAutomation = { isWorkflowSheetVisible = true }
                     )
                 }
                 MainDestination.Sessions -> {
@@ -573,6 +576,15 @@ fun MainScaffold(
             visible = isContainersVisible,
             onDismiss = { isContainersVisible = false },
             hostName = activeSpace.name
+        )
+
+        // Terminal Workflow Automation Bottom Sheet
+        WorkflowRunnerSheet(
+            visible = isWorkflowSheetVisible,
+            onDismiss = { isWorkflowSheetVisible = false },
+            onExecuteCommand = { cmd ->
+                processEngine.executeCommand(cmd)
+            }
         )
     }
 }

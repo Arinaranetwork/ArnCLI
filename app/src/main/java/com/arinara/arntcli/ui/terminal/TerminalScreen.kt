@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.arinara.arntcli.core.terminal.TerminalAnsiKeyEngine
 import com.arinara.arntcli.ui.components.presets.AppButton
 import com.arinara.arntcli.ui.components.presets.AppButtonVariant
 import com.arinara.arntcli.ui.components.presets.AppCard
@@ -74,11 +75,11 @@ fun TerminalScreen(
     onStartLocalShell: () -> Unit,
     onExecuteCommand: (sessionId: String, command: String) -> Unit = { _, _ -> },
     onCloseSession: (sessionId: String) -> Unit = {},
+    onOpenAutomation: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedSessionIndex by remember { mutableIntStateOf(0) }
     var commandInput by remember { mutableStateOf("") }
-    val auxiliaryKeys = listOf("ESC", "TAB", "CTRL", "ALT", "|", "/", "~", "-", ">")
     val quickCommands = listOf("uname -a", "id", "pwd", "date", "uptime", "clear")
 
     Column(
@@ -445,37 +446,23 @@ fun TerminalScreen(
                 }
             }
 
-            // Auxiliary Keyboard Keys Row
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(auxiliaryKeys) { key ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(ElectricSlateTokens.SurfacePanel)
-                            .border(
-                                width = 1.dp,
-                                color = ElectricSlateTokens.BorderSubtle,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .jigglePressClickable {
-                                commandInput += key
-                            }
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = key,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 12.sp,
-                            color = ElectricSlateTokens.TextPrimary
-                        )
+            // Interactive Modifier & Macro Key Bar
+            TerminalKeyBar(
+                onSendRawKey = { rawKey ->
+                    when (rawKey) {
+                        TerminalAnsiKeyEngine.CTRL_C -> onExecuteCommand(currentSession.id, "^C")
+                        TerminalAnsiKeyEngine.CTRL_D -> onCloseSession(currentSession.id)
+                        TerminalAnsiKeyEngine.CTRL_L -> onExecuteCommand(currentSession.id, "clear")
+                        TerminalAnsiKeyEngine.TAB -> commandInput += "\t"
+                        TerminalAnsiKeyEngine.ESCAPE -> commandInput = ""
+                        else -> {
+                            commandInput += rawKey
+                        }
                     }
-                }
-            }
+                },
+                onInsertText = { text -> commandInput += text },
+                onOpenAutomation = onOpenAutomation
+            )
         }
 
         BottomClearanceSpacer()

@@ -123,4 +123,12 @@ class LocalProcessEngine(
             process.destroyForcibly()
         }
     }
+
+    /**
+     * Executes a command and returns the combined stdout and stderr as a string.
+     */
+    suspend fun executeCommand(command: String): String {
+        val result = execute(command)
+        return (result.output + result.errors).joinToString("\n")
+    }
 }
