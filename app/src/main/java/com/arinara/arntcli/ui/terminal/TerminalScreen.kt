@@ -243,7 +243,11 @@ fun TerminalScreen(
                                         shape = RoundedCornerShape(999.dp)
                                     )
                                     .jigglePressClickable {
+                                        val closingIndex = safeIndex
                                         onCloseSession(currentSession.id)
+                                        if (closingIndex >= sessions.size - 1) {
+                                            selectedSessionIndex = (sessions.size - 2).coerceAtLeast(0)
+                                        }
                                     }
                                     .padding(horizontal = 8.dp, vertical = 2.dp),
                                 contentAlignment = Alignment.Center

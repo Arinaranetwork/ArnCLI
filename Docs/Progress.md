@@ -2,15 +2,16 @@
 Last Updated: 2026-10-22
 
 ## Current Phase
-Phase 4 - SecureConnectAndTunnels [Completed]
+Phase 5 - WireGuardAndAirGappedSync [Completed]
 
 ## Phases
-| Phase | Name                    | Status      |
-|-------|-------------------------|-------------|
-| 1     | SetupAndInfrastructure  | Completed   |
-| 2     | CoreTerminalAndPocket   | Completed   |
-| 3     | NetworkReconnaissance   | Completed   |
-| 4     | SecureConnectAndTunnels | Completed   |
+| Phase | Name                      | Status      |
+|-------|---------------------------|-------------|
+| 1     | SetupAndInfrastructure    | Completed   |
+| 2     | CoreTerminalAndPocket     | Completed   |
+| 3     | NetworkReconnaissance     | Completed   |
+| 4     | SecureConnectAndTunnels   | Completed   |
+| 5     | WireGuardAndAirGappedSync | Completed   |
 
 ## Completed
 - [x] Task 1: Initialize Gradle build structure, settings, dependencies, and VerifyAndroidRulesTask - Phase 1
@@ -40,6 +41,10 @@ Phase 4 - SecureConnectAndTunnels [Completed]
 - [x] Task 25: Implement Port Forwarding Manager UI (PortForwardingSheet) - Phase 4
 - [x] Task 26: Implement Terminal Session Multiplexer (TerminalSessionBar in TerminalScreen) - Phase 4
 - [x] Task 27: Implement Jump Host / Bastion Proxy configuration in AddHostSheet - Phase 4
+- [x] Task 28: Implement WireGuard Configuration Parser & Profile Engine - Phase 5
+- [x] Task 29: Implement WireGuard Profile Sheet (WireGuardSheet) - Phase 5
+- [x] Task 30: Implement SFTP Remote File Explorer Engine & Models - Phase 5
+- [x] Task 31: Implement Air-Gapped Vault Sync Engine (BcUrSyncEngine) & AirGappedSyncSheet - Phase 5
 
 ## In Progress
 

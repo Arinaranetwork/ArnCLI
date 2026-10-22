@@ -48,6 +48,7 @@ import com.arinara.arntcli.ui.model.Space
 import com.arinara.arntcli.ui.model.TerminalSession
 import com.arinara.arntcli.ui.model.VaultCredential
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
@@ -74,7 +75,9 @@ import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
 import com.arinara.arntcli.ui.tunnel.PortForwardingSheet
+import com.arinara.arntcli.ui.tunnel.WireGuardSheet
 import com.arinara.arntcli.ui.vault.AddCredentialSheet
+import com.arinara.arntcli.ui.vault.AirGappedSyncSheet
 import com.arinara.arntcli.ui.vault.CredentialDetailSheet
 import com.arinara.arntcli.ui.vault.VaultScreen
 
@@ -110,8 +113,11 @@ fun MainScaffold(
     var isAddCredentialVisible by remember { mutableStateOf(false) }
     var selectedCredentialDetail by remember { mutableStateOf<VaultCredential?>(null) }
     var isPortForwardingVisible by remember { mutableStateOf(false) }
+    var isWireGuardVisible by remember { mutableStateOf(false) }
+    var isAirGappedSyncVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+    val activeSessionJobs = remember { mutableMapOf<String, Job>() }
     val processEngine = remember { LocalProcessEngine() }
     val tunnelEngine = remember { PortForwardingEngine() }
     var tunnelRules by remember { mutableStateOf(emptyList<TunnelRule>()) }
@@ -273,7 +279,8 @@ fun MainScaffold(
                                 sessions = sessions.map { s ->
                                     if (s.id == sessionId) s.copy(lines = (s.lines + "$ $cmd").takeLast(500)) else s
                                 }
-                                coroutineScope.launch {
+                                activeSessionJobs[sessionId]?.cancel()
+                                activeSessionJobs[sessionId] = coroutineScope.launch {
                                     try {
                                         processEngine.executeStreaming(cmd).collect { outputLine ->
                                             sessions = sessions.map { s ->
@@ -294,6 +301,8 @@ fun MainScaffold(
                             }
                         },
                         onCloseSession = { sessionId ->
+                            activeSessionJobs[sessionId]?.cancel()
+                            activeSessionJobs.remove(sessionId)
                             sessions = sessions.filterNot { it.id == sessionId }
                         }
                     )
@@ -305,6 +314,7 @@ fun MainScaffold(
                         hosts = spaceHosts,
                         activeTunnelCount = tunnelRules.count { it.status == TunnelStatus.Active },
                         onManageTunnelsClick = { isPortForwardingVisible = true },
+                        onWireGuardClick = { isWireGuardVisible = true },
                         onAddHostClick = { isAddHostVisible = true },
                         onHostClick = { host ->
                             val bannerLines = mutableListOf(
@@ -353,7 +363,8 @@ fun MainScaffold(
                         credentials = spaceCredentials,
                         onToggleVaultLock = { isVaultUnlocked = !isVaultUnlocked },
                         onAddCredentialClick = { isAddCredentialVisible = true },
-                        onCredentialClick = { cred -> selectedCredentialDetail = cred }
+                        onCredentialClick = { cred -> selectedCredentialDetail = cred },
+                        onAirGappedSyncClick = { isAirGappedSyncVisible = true }
                     )
                 }
                 MainDestination.Settings -> {
@@ -494,6 +505,26 @@ fun MainScaffold(
             rules = tunnelRules,
             onRulesChanged = {
                 tunnelRules = tunnelEngine.rules.value
+            }
+        )
+
+        // WireGuard Profile Inspector Bottom Sheet
+        WireGuardSheet(
+            visible = isWireGuardVisible,
+            onDismiss = { isWireGuardVisible = false },
+            activeSpaceId = activeSpace.id,
+            onSaveToVault = { cred ->
+                credentials = credentials + cred
+            }
+        )
+
+        // Air-Gapped Vault Sync (BC-UR) Bottom Sheet
+        AirGappedSyncSheet(
+            visible = isAirGappedSyncVisible,
+            onDismiss = { isAirGappedSyncVisible = false },
+            onImportPayload = { payloadJson ->
+                // Unlock vault and accept new imported credentials if present
+                isVaultUnlocked = true
             }
         )
     }

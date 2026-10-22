@@ -66,10 +66,13 @@ data class TunnelRule(
     /**
      * Formats SSH flag representation (e.g. "-L 8080:localhost:80").
      */
-    fun toCliSyntax(): String = when (type) {
-        TunnelType.Local -> "-L $localPort:$remoteHost:$remotePort"
-        TunnelType.Remote -> "-R $remotePort:$remoteHost:$localPort"
-        TunnelType.DynamicSocks5 -> "-D $localPort"
+    fun toCliSyntax(): String {
+        val formattedRemoteHost = if (remoteHost.contains(':') && !remoteHost.startsWith("[")) "[$remoteHost]" else remoteHost
+        return when (type) {
+            TunnelType.Local -> "-L $localPort:$formattedRemoteHost:$remotePort"
+            TunnelType.Remote -> "-R $remotePort:$formattedRemoteHost:$localPort"
+            TunnelType.DynamicSocks5 -> "-D $localPort"
+        }
     }
 
     /**

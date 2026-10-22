@@ -113,7 +113,7 @@ class LanPortScanner {
             val resolvedAddress = InetAddress.getByName(cleanHost)
             val resolvedIp = resolvedAddress.hostAddress ?: cleanHost
 
-            val results = mutableListOf<PortStatus>()
+            val results = mutableListOf<ScannedPort>()
             // Chunk concurrency to 30 simultaneous sockets to prevent EMFILE socket exhaustion
             for (chunk in ports.chunked(30)) {
                 val chunkResults = chunk.map { port ->

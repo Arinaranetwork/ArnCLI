@@ -62,6 +62,7 @@ fun VaultScreen(
     onToggleVaultLock: () -> Unit,
     onAddCredentialClick: () -> Unit,
     onCredentialClick: (VaultCredential) -> Unit = {},
+    onAirGappedSyncClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -228,7 +229,7 @@ fun VaultScreen(
             leadingIcon = Icons.Outlined.QrCode,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
-            onClick = { }
+            onClick = onAirGappedSyncClick
         )
 
         BottomClearanceSpacer()

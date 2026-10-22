@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.SyncAlt
+import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +61,7 @@ fun SessionsScreen(
     onHostClick: (HostItem) -> Unit = {},
     activeTunnelCount: Int = 0,
     onManageTunnelsClick: () -> Unit = {},
+    onWireGuardClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -211,6 +213,15 @@ fun SessionsScreen(
             leadingIconTint = if (activeTunnelCount > 0) ElectricSlateTokens.PrimaryAccent else ElectricSlateTokens.TextMuted,
             action = AppListItemAction.Chevron,
             onClick = onManageTunnelsClick
+        )
+
+        AppListItem(
+            title = "WireGuard Profiles",
+            subtitle = "Manage and inspect wg-quick VPN configurations",
+            leadingIcon = Icons.Outlined.VpnKey,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = onWireGuardClick
         )
 
         BottomClearanceSpacer()

@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -37,17 +38,24 @@ class PortForwardingEngine {
     }
 
     fun addRule(rule: TunnelRule): Boolean {
-        if (_rules.value.any { it.id == rule.id }) return false
-        _rules.value = _rules.value + rule
-        return true
+        var added = false
+        _rules.update { current ->
+            if (current.any { it.id == rule.id }) {
+                current
+            } else {
+                added = true
+                current + rule
+            }
+        }
+        return added
     }
 
     fun removeRule(ruleId: String) {
-        _rules.value = _rules.value.filterNot { it.id == ruleId }
+        _rules.update { current -> current.filterNot { it.id == ruleId } }
     }
 
     fun updateRule(updated: TunnelRule) {
-        _rules.value = _rules.value.map { if (it.id == updated.id) updated else it }
+        _rules.update { current -> current.map { if (it.id == updated.id) updated else it } }
     }
 
     /**
