@@ -55,6 +55,7 @@ import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.desktop.DesktopViewerSheet
 import com.arinara.arntcli.ui.devlab.DevLabSheet
 import com.arinara.arntcli.ui.pocket.DnsSheet
+import com.arinara.arntcli.ui.telemetry.ServerTelemetrySheet
 import com.arinara.arntcli.ui.pocket.LanDiscoverySheet
 import com.arinara.arntcli.ui.pocket.PingSheet
 import com.arinara.arntcli.ui.pocket.PocketScreen
@@ -121,6 +122,7 @@ fun MainScaffold(
     var isStorageBrowserVisible by remember { mutableStateOf(false) }
     var isDesktopViewerVisible by remember { mutableStateOf(false) }
     var isDevLabVisible by remember { mutableStateOf(false) }
+    var isServerTelemetryVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
@@ -361,6 +363,7 @@ fun MainScaffold(
                                 "discovery" -> isDiscoveryVisible = true
                                 "traceroute" -> isTracerouteVisible = true
                                 "devlab" -> isDevLabVisible = true
+                                "telemetry" -> isServerTelemetryVisible = true
                             }
                         }
                     )
@@ -553,6 +556,13 @@ fun MainScaffold(
         DevLabSheet(
             visible = isDevLabVisible,
             onDismiss = { isDevLabVisible = false }
+        )
+
+        // Server Telemetry & Watchdogs Bottom Sheet
+        ServerTelemetrySheet(
+            visible = isServerTelemetryVisible,
+            onDismiss = { isServerTelemetryVisible = false },
+            hostName = activeSpace.name
         )
     }
 }

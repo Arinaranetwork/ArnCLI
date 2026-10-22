@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.NetworkPing
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -162,6 +163,15 @@ fun PocketScreen(
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { onToolSelected("devlab") }
+        )
+
+        AppListItem(
+            title = "Server Health & Watchdogs",
+            subtitle = "Agentless Linux /proc telemetry, uptime probes & SSL expiry",
+            leadingIcon = Icons.Outlined.Speed,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = { onToolSelected("telemetry") }
         )
 
         BottomClearanceSpacer()
