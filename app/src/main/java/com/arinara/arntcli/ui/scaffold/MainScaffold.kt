@@ -52,6 +52,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
+import com.arinara.arntcli.ui.container.ContainerExplorerSheet
 import com.arinara.arntcli.ui.desktop.DesktopViewerSheet
 import com.arinara.arntcli.ui.devlab.DevLabSheet
 import com.arinara.arntcli.ui.pocket.DnsSheet
@@ -123,6 +124,7 @@ fun MainScaffold(
     var isDesktopViewerVisible by remember { mutableStateOf(false) }
     var isDevLabVisible by remember { mutableStateOf(false) }
     var isServerTelemetryVisible by remember { mutableStateOf(false) }
+    var isContainersVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
@@ -364,6 +366,7 @@ fun MainScaffold(
                                 "traceroute" -> isTracerouteVisible = true
                                 "devlab" -> isDevLabVisible = true
                                 "telemetry" -> isServerTelemetryVisible = true
+                                "containers" -> isContainersVisible = true
                             }
                         }
                     )
@@ -562,6 +565,13 @@ fun MainScaffold(
         ServerTelemetrySheet(
             visible = isServerTelemetryVisible,
             onDismiss = { isServerTelemetryVisible = false },
+            hostName = activeSpace.name
+        )
+
+        // Containers & Cloud-Native Bottom Sheet
+        ContainerExplorerSheet(
+            visible = isContainersVisible,
+            onDismiss = { isContainersVisible = false },
             hostName = activeSpace.name
         )
     }

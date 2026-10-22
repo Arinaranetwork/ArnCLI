@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.AltRoute
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.DeveloperMode
 import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.NetworkPing
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.Search
@@ -172,6 +173,15 @@ fun PocketScreen(
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { onToolSelected("telemetry") }
+        )
+
+        AppListItem(
+            title = "Containers & Kubernetes",
+            subtitle = "Docker Remote API, Podman libpod & Kube pods explorer",
+            leadingIcon = Icons.Outlined.Layers,
+            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+            action = AppListItemAction.Chevron,
+            onClick = { onToolSelected("containers") }
         )
 
         BottomClearanceSpacer()
