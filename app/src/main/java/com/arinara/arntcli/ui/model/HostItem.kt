@@ -26,5 +26,6 @@ data class HostItem(
     val username: String,
     val protocol: String = "SSH",
     val keyAlias: String? = null,
+    val jumpHost: String? = null,
     val spaceId: String
 )

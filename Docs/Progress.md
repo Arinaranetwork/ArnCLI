@@ -2,14 +2,15 @@
 Last Updated: 2026-10-22
 
 ## Current Phase
-Phase 3 - NetworkReconnaissance [Completed]
+Phase 4 - SecureConnectAndTunnels [Completed]
 
 ## Phases
-| Phase | Name                  | Status      |
-|-------|-----------------------|-------------|
-| 1     | SetupAndInfrastructure| Completed   |
-| 2     | CoreTerminalAndPocket | Completed   |
-| 3     | NetworkReconnaissance | Completed   |
+| Phase | Name                    | Status      |
+|-------|-------------------------|-------------|
+| 1     | SetupAndInfrastructure  | Completed   |
+| 2     | CoreTerminalAndPocket   | Completed   |
+| 3     | NetworkReconnaissance   | Completed   |
+| 4     | SecureConnectAndTunnels | Completed   |
 
 ## Completed
 - [x] Task 1: Initialize Gradle build structure, settings, dependencies, and VerifyAndroidRulesTask - Phase 1
@@ -35,6 +36,10 @@ Phase 3 - NetworkReconnaissance [Completed]
 - [x] Task 21: Implement Rootless Traceroute & Hop Inspector (TracerouteEngine) and TracerouteSheet - Phase 3
 - [x] Task 22: Implement Cryptographic Vault Engine (VaultEngine) and Credential Management Sheets - Phase 3
 - [x] Task 23: Implement Dynamic Space Creation (AddSpaceSheet) and Environment Switcher integration - Phase 3
+- [x] Task 24: Implement Port Forwarding Engine (TunnelRule & PortForwardingEngine) - Phase 4
+- [x] Task 25: Implement Port Forwarding Manager UI (PortForwardingSheet) - Phase 4
+- [x] Task 26: Implement Terminal Session Multiplexer (TerminalSessionBar in TerminalScreen) - Phase 4
+- [x] Task 27: Implement Jump Host / Bastion Proxy configuration in AddHostSheet - Phase 4
 
 ## In Progress
 

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,6 +58,8 @@ fun SessionsScreen(
     hosts: List<HostItem>,
     onAddHostClick: () -> Unit,
     onHostClick: (HostItem) -> Unit = {},
+    activeTunnelCount: Int = 0,
+    onManageTunnelsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -192,6 +195,23 @@ fun SessionsScreen(
                 )
             }
         }
+
+        Text(
+            text = "Port Forwarding & Tunnels",
+            fontFamily = ElmsSans,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = ElectricSlateTokens.TextPrimary
+        )
+
+        AppListItem(
+            title = "Manage Port Forwarding",
+            subtitle = if (activeTunnelCount > 0) "$activeTunnelCount active tunnel(s)" else "Local (-L), Remote (-R), Dynamic SOCKS5 (-D)",
+            leadingIcon = Icons.Outlined.SyncAlt,
+            leadingIconTint = if (activeTunnelCount > 0) ElectricSlateTokens.PrimaryAccent else ElectricSlateTokens.TextMuted,
+            action = AppListItemAction.Chevron,
+            onClick = onManageTunnelsClick
+        )
 
         BottomClearanceSpacer()
     }

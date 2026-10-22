@@ -221,13 +221,42 @@ fun TerminalScreen(
                             )
                         }
 
-                        Text(
-                            text = if (currentSession.isConnected) "Connected" else "Disconnected",
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 11.sp,
-                            color = ElectricSlateTokens.TextMuted
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = if (currentSession.isConnected) "Connected" else "Disconnected",
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 11.sp,
+                                color = ElectricSlateTokens.TextMuted
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .background(ElectricSlateTokens.SurfaceElevated)
+                                    .border(
+                                        width = 1.dp,
+                                        color = ElectricSlateTokens.BorderSubtle,
+                                        shape = RoundedCornerShape(999.dp)
+                                    )
+                                    .jigglePressClickable {
+                                        onCloseSession(currentSession.id)
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Close",
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 11.sp,
+                                    color = ElectricSlateTokens.Destructive
+                                )
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

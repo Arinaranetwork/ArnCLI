@@ -57,6 +57,9 @@ import com.arinara.arntcli.ui.pocket.PingSheet
 import com.arinara.arntcli.ui.pocket.PocketScreen
 import com.arinara.arntcli.ui.pocket.PortScannerSheet
 import com.arinara.arntcli.ui.pocket.SslInspectorSheet
+import com.arinara.arntcli.core.tunnel.PortForwardingEngine
+import com.arinara.arntcli.core.tunnel.TunnelRule
+import com.arinara.arntcli.core.tunnel.TunnelStatus
 import com.arinara.arntcli.ui.pocket.SubnetCalculatorSheet
 import com.arinara.arntcli.ui.pocket.TracerouteSheet
 import com.arinara.arntcli.ui.pocket.WifiInspectorSheet
@@ -70,6 +73,7 @@ import com.arinara.arntcli.ui.terminal.TerminalScreen
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
+import com.arinara.arntcli.ui.tunnel.PortForwardingSheet
 import com.arinara.arntcli.ui.vault.AddCredentialSheet
 import com.arinara.arntcli.ui.vault.CredentialDetailSheet
 import com.arinara.arntcli.ui.vault.VaultScreen
@@ -105,9 +109,12 @@ fun MainScaffold(
     var isAddSpaceVisible by remember { mutableStateOf(false) }
     var isAddCredentialVisible by remember { mutableStateOf(false) }
     var selectedCredentialDetail by remember { mutableStateOf<VaultCredential?>(null) }
+    var isPortForwardingVisible by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val processEngine = remember { LocalProcessEngine() }
+    val tunnelEngine = remember { PortForwardingEngine() }
+    var tunnelRules by remember { mutableStateOf(emptyList<TunnelRule>()) }
 
     val initialSpaces = remember {
         listOf(
@@ -296,18 +303,25 @@ fun MainScaffold(
                         contentPadding = contentPadding,
                         activeSpaceName = activeSpace.name,
                         hosts = spaceHosts,
+                        activeTunnelCount = tunnelRules.count { it.status == TunnelStatus.Active },
+                        onManageTunnelsClick = { isPortForwardingVisible = true },
                         onAddHostClick = { isAddHostVisible = true },
                         onHostClick = { host ->
+                            val bannerLines = mutableListOf(
+                                "ArnCLI Remote Connection [Space: ${activeSpace.name}]",
+                                "Connected to ${host.name} (${host.address}:${host.port}) via ${host.protocol}"
+                            )
+                            if (!host.jumpHost.isNullOrBlank()) {
+                                bannerLines.add("[ProxyJump] Chained through Bastion: ${host.jumpHost}")
+                            }
+                            bannerLines.add("Authenticated as ${host.username}. Remote session ready.")
+
                             val session = TerminalSession(
                                 id = "session-${host.id}",
                                 title = "${host.protocol.lowercase()}:${host.name}",
                                 shell = "${host.protocol} ${host.username}@${host.address}:${host.port}",
                                 isConnected = true,
-                                lines = listOf(
-                                    "ArnCLI Remote Connection [Space: ${activeSpace.name}]",
-                                    "Connected to ${host.name} (${host.address}:${host.port}) via ${host.protocol}",
-                                    "Authenticated as ${host.username}. Remote session ready."
-                                )
+                                lines = bannerLines
                             )
                             sessions = sessions + session
                             currentDestination = MainDestination.Terminal
@@ -469,6 +483,17 @@ fun MainScaffold(
             initialName = prefilledDiscoveryHost?.hostname ?: "",
             onSaveHost = { newHost ->
                 hosts = hosts + newHost
+            }
+        )
+
+        // Port Forwarding Manager Bottom Sheet
+        PortForwardingSheet(
+            visible = isPortForwardingVisible,
+            onDismiss = { isPortForwardingVisible = false },
+            engine = tunnelEngine,
+            rules = tunnelRules,
+            onRulesChanged = {
+                tunnelRules = tunnelEngine.rules.value
             }
         )
     }

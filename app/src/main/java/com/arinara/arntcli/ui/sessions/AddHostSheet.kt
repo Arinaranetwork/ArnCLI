@@ -61,6 +61,7 @@ fun AddHostSheet(
     var portText by remember(visible) { mutableStateOf("22") }
     var protocol by remember(visible) { mutableStateOf("SSH") }
     var username by remember(visible) { mutableStateOf("root") }
+    var jumpHost by remember(visible) { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val protocols = listOf("SSH", "Telnet", "HTTP", "Storage")
@@ -255,6 +256,50 @@ fun AddHostSheet(
                 }
             }
 
+            Text(
+                text = "Jump Host / Bastion Proxy (Optional)",
+                fontFamily = ElmsSans,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = ElectricSlateTokens.TextPrimary
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(ElectricSlateTokens.SurfaceElevated)
+                    .border(
+                        width = 1.dp,
+                        color = ElectricSlateTokens.BorderSubtle,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+            ) {
+                BasicTextField(
+                    value = jumpHost,
+                    onValueChange = { jumpHost = it },
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = ElectricSlateTokens.TextPrimary
+                    ),
+                    cursorBrush = SolidColor(ElectricSlateTokens.PrimaryAccent),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (jumpHost.isBlank()) {
+                    Text(
+                        text = "e.g. bastion.internal:22",
+                        fontFamily = ElmsSans,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                        color = ElectricSlateTokens.TextMuted
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             AppButton(
@@ -275,6 +320,7 @@ fun AddHostSheet(
                         port = port,
                         username = username.trim().ifBlank { "root" },
                         protocol = protocol,
+                        jumpHost = jumpHost.trim().ifBlank { null },
                         spaceId = activeSpaceId
                     )
                     onSaveHost(newHost)
