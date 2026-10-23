@@ -15,3 +15,14 @@ All notable changes to the ArnTCLI workstation for the 1.0 major release line.
 - **Secure Tunnels & Air-Gapped Sync (Phase 4 & 5)**: WireGuard profile parser, Local/Remote/Dynamic port forwarding engine, and air-gapped QR sync (BC-UR).
 - **Network Reconnaissance & Pocket Diagnostics (Phase 2 & 3)**: ICMP ping & jitter, DNS resolver, CIDR subnet calculator, Wi-Fi inspector, SSL inspector, Wake-on-LAN, TCP port scanner, LAN host discovery, and route traceroute.
 - **Hardened Production Release**: 100% offline-first architecture with zero telemetry, zero analytics SDKs, and R8 minification optimization.
+
+## 1.0.1 - 2026-10-23
+### Fixed
+- **Purged Mock & Fake Data**: Eliminated simulated fallback payloads and debug buttons across Wi-Fi (`-58 dBm` fallback removed), Container Explorer (mock containers removed), Storage Engine (dummy SMB/S3/WebDAV files removed), SFTP Engine, and BLE GATT scanner.
+- **Transparent Session Routing**: Eliminated ambiguous execution routing where commands clicked under remote SSH banners piped to the local Android device shell (`/system/bin/sh`). Remote sessions now explicitly display remote channel standby notice.
+- **Vault Secret Masking**: Added `SnippetInterpolationEngine.interpolateMasked()` to mask sensitive vault credentials (`[SECRET:key]`) in terminal command views and execution logs.
+- **Form Error Feedback**: Integrated prominent `AppNoticeBanner` feedback in `AddHostSheet` and `AddCredentialSheet` to prevent silent validation drops.
+- **Destructive Action Guards**: Added confirmation cards before permanently deleting vault credentials and clearing container log buffers.
+- **Security & Privacy Hardening**: Disabled Android cloud backup (`android:allowBackup="false"`), configured root exclusions in data extraction rules, and scoped internal file provider paths to `arntcli`.
+- **Soft Keyboard Insets**: Integrated `.imePadding()` into `AppBottomSheet` to ensure input fields remain unobstructed when the virtual keyboard is open.
+- **Enforced Emoji Prohibition**: Enforced strict project-wide emoji prohibition via Gradle `VerifyNoEmojisTask` bound to build and test lifecycles.
