@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +61,8 @@ import java.io.InputStreamReader
 import java.net.InetSocketAddress
 import java.net.Socket
 import com.arinara.arntcli.core.net.DiscoveredHost
+import com.arinara.arntcli.core.state.WorkspaceSnapshot
+import com.arinara.arntcli.core.state.WorkspaceStateStore
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.automation.WorkflowRunnerSheet
 import com.arinara.arntcli.ui.container.ContainerExplorerSheet
@@ -141,16 +144,45 @@ fun MainScaffold(
     val sandboxHomeDir = remember(context) {
         File(context.filesDir, "home").apply { mkdirs() }
     }
+    val stateStore = remember(context) {
+        WorkspaceStateStore(File(context.filesDir, "state"))
+    }
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
     val processEngine = remember(sandboxHomeDir) {
         LocalProcessEngine(workingDirectory = sandboxHomeDir)
     }
     val tunnelEngine = remember { PortForwardingEngine() }
-    var tunnelRules by remember { mutableStateOf(emptyList<TunnelRule>()) }
-    var sessionSequence by remember { mutableStateOf(2) }
 
-    val initialSpaces = remember {
+    val initialSavedSnapshot = remember(stateStore) {
+        stateStore.load()?.also { snapshot ->
+            tunnelEngine.setRules(snapshot.tunnelRules)
+            snapshot.sessions.forEach { s ->
+                val envMap = buildMap {
+                    s.hostAddress?.let { put("HOST", it) }
+                    s.hostPort?.let { put("PORT", it.toString()) }
+                    s.hostUser?.let { put("TARGET_USER", it) }
+                    s.hostProtocol?.let { put("PROTOCOL", it) }
+                }
+                processEngine.getOrCreateSession(
+                    sessionId = s.id,
+                    customHomeDir = sandboxHomeDir,
+                    initialEnv = envMap
+                )
+            }
+        }
+    }
+
+    var tunnelRules by remember {
+        mutableStateOf(initialSavedSnapshot?.tunnelRules ?: emptyList())
+    }
+    var sessionSequence by remember {
+        mutableStateOf(initialSavedSnapshot?.sessionSequence ?: 2)
+    }
+    var settingsStatusMessage by remember { mutableStateOf<String?>(null) }
+    var isSettingsStatusError by remember { mutableStateOf(false) }
+
+    val defaultSpaces = remember {
         listOf(
             Space(
                 id = "default",
@@ -164,28 +196,71 @@ fun MainScaffold(
         )
     }
 
-    var spaces by remember { mutableStateOf(initialSpaces) }
-    var selectedSpaceId by remember { mutableStateOf("default") }
-    var hosts by remember { mutableStateOf(emptyList<HostItem>()) }
-    var credentials by remember { mutableStateOf(emptyList<VaultCredential>()) }
+    var spaces by remember {
+        mutableStateOf(initialSavedSnapshot?.spaces ?: defaultSpaces)
+    }
+    var selectedSpaceId by remember {
+        mutableStateOf(initialSavedSnapshot?.selectedSpaceId ?: "default")
+    }
+    var hosts by remember {
+        mutableStateOf(initialSavedSnapshot?.hosts ?: emptyList())
+    }
+    var credentials by remember {
+        mutableStateOf(initialSavedSnapshot?.credentials ?: emptyList())
+    }
     var sessions by remember {
-        processEngine.getOrCreateSession("session-1", customHomeDir = sandboxHomeDir)
-        mutableStateOf(
-            listOf(
-                TerminalSession(
-                    id = "session-1",
-                    title = "local:sh",
-                    shell = processEngine.shellExecutable,
-                    isConnected = true,
-                    cwd = processEngine.getFormattedPromptCwd("session-1"),
-                    lines = listOf(
-                        "ArnCLI Stateful Shell (${processEngine.shellExecutable})",
-                        "Writable Home: ${sandboxHomeDir.absolutePath}",
-                        "Type 'help' for built-in commands, aliases, and key shortcuts."
+        val restoredSessions = initialSavedSnapshot?.sessions?.map { s ->
+            s.copy(
+                cwd = processEngine.getFormattedPromptCwd(s.id),
+                history = processEngine.getHistory(s.id).ifEmpty { s.history },
+                isRunning = false
+            )
+        }
+        if (!restoredSessions.isNullOrEmpty()) {
+            mutableStateOf(restoredSessions)
+        } else {
+            processEngine.getOrCreateSession("session-1", customHomeDir = sandboxHomeDir)
+            mutableStateOf(
+                listOf(
+                    TerminalSession(
+                        id = "session-1",
+                        title = "local:sh",
+                        shell = processEngine.shellExecutable,
+                        isConnected = true,
+                        cwd = processEngine.getFormattedPromptCwd("session-1"),
+                        history = processEngine.getHistory("session-1"),
+                        lines = listOf(
+                            "ArnCLI Stateful Shell (${processEngine.shellExecutable})",
+                            "Writable Home: ${sandboxHomeDir.absolutePath}",
+                            "Type 'help' for built-in commands, aliases, and key shortcuts."
+                        )
                     )
                 )
             )
+        }
+    }
+
+    // Automatically persist workspace snapshot whenever state mutates
+    LaunchedEffect(spaces, selectedSpaceId, hosts, credentials, tunnelRules, sessions, sessionSequence) {
+        val snapshot = WorkspaceSnapshot(
+            spaces = spaces.map { sp ->
+                sp.copy(
+                    hostCount = hosts.count { it.spaceId == sp.id },
+                    tunnelCount = tunnelRules.count { it.status == TunnelStatus.Active },
+                    isSelected = sp.id == selectedSpaceId
+                )
+            },
+            selectedSpaceId = selectedSpaceId,
+            hosts = hosts,
+            credentials = credentials,
+            tunnelRules = tunnelRules,
+            sessions = sessions,
+            selectedSessionIndex = 0,
+            sessionSequence = sessionSequence
         )
+        withContext(Dispatchers.IO) {
+            stateStore.save(snapshot)
+        }
     }
 
     val activeSpace = spaces.firstOrNull { it.id == selectedSpaceId } ?: spaces.first()
@@ -547,8 +622,63 @@ fun MainScaffold(
                 MainDestination.Settings -> {
                     SettingsScreen(
                         contentPadding = contentPadding,
-                        onExportProfilesClick = onExportProfiles,
-                        onImportProfilesClick = onImportProfiles
+                        statusMessage = settingsStatusMessage,
+                        isStatusError = isSettingsStatusError,
+                        onDismissStatus = { settingsStatusMessage = null },
+                        persistedSummary = "Saved: ${spaces.size} spaces, ${hosts.size} hosts, ${credentials.size} secrets, ${sessions.size} shells",
+                        onExportProfilesClick = {
+                            coroutineScope.launch {
+                                val currentSnapshot = WorkspaceSnapshot(
+                                    spaces = spaces,
+                                    selectedSpaceId = selectedSpaceId,
+                                    hosts = hosts,
+                                    credentials = credentials,
+                                    tunnelRules = tunnelRules,
+                                    sessions = sessions,
+                                    selectedSessionIndex = 0,
+                                    sessionSequence = sessionSequence
+                                )
+                                val ok = withContext(Dispatchers.IO) {
+                                    stateStore.exportBackup(currentSnapshot)
+                                }
+                                if (ok) {
+                                    isSettingsStatusError = false
+                                    settingsStatusMessage = "Exported ${spaces.size} spaces, ${hosts.size} hosts, ${credentials.size} credentials, and ${sessions.size} sessions to ${stateStore.defaultBackupFile.name}."
+                                    onExportProfiles()
+                                } else {
+                                    isSettingsStatusError = true
+                                    settingsStatusMessage = "Failed to write backup snapshot to storage."
+                                }
+                            }
+                        },
+                        onImportProfilesClick = {
+                            coroutineScope.launch {
+                                val imported = withContext(Dispatchers.IO) {
+                                    stateStore.importBackup()
+                                }
+                                if (imported != null) {
+                                    spaces = imported.spaces
+                                    selectedSpaceId = imported.selectedSpaceId
+                                    hosts = imported.hosts
+                                    credentials = imported.credentials
+                                    tunnelRules = imported.tunnelRules
+                                    tunnelEngine.setRules(imported.tunnelRules)
+                                    sessionSequence = imported.sessionSequence
+                                    imported.sessions.forEach { s ->
+                                        processEngine.getOrCreateSession(s.id, customHomeDir = sandboxHomeDir)
+                                    }
+                                    if (imported.sessions.isNotEmpty()) {
+                                        sessions = imported.sessions
+                                    }
+                                    isSettingsStatusError = false
+                                    settingsStatusMessage = "Restored ${imported.spaces.size} spaces, ${imported.hosts.size} hosts, ${imported.credentials.size} credentials, and ${imported.sessions.size} sessions."
+                                    onImportProfiles()
+                                } else {
+                                    isSettingsStatusError = true
+                                    settingsStatusMessage = "No backup snapshot found at ${stateStore.defaultBackupFile.name}. Export profiles first."
+                                }
+                            }
+                        }
                     )
                 }
             }

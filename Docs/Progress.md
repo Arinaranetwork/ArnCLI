@@ -83,6 +83,7 @@ Phase 10 - PublicLaunchAndHardening [Completed]
 - [x] Task 62: Add transparent session connection status and snippet secret masking - Phase 10
 - [x] Task 63: Overhaul LocalProcessEngine with stateful per-session working directory, environment variables, built-ins, tab completion, and process cancellation - Phase 10
 - [x] Task 64: Fix TerminalScreen and TerminalKeyBar UX (Up/Down history cycling, Left/Right cursor navigation, sticky Ctrl/Alt latches, live CWD prompt, and remote host shell integration) - Phase 10
+- [x] Task 65: Implement persistent disk state (WorkspaceStateStore & LocalProcessEngine session persistence) for spaces, hosts, credentials, tunnels, and terminal sessions - Phase 10
 
 ## In Progress
 

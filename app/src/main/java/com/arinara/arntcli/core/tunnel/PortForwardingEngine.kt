@@ -37,6 +37,10 @@ class PortForwardingEngine {
         }
     }
 
+    fun setRules(restoredRules: List<TunnelRule>) {
+        _rules.value = restoredRules
+    }
+
     fun addRule(rule: TunnelRule): Boolean {
         var added = false
         _rules.update { current ->

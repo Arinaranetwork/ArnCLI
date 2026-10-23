@@ -177,4 +177,37 @@ class LocalProcessEngineTest {
             tempHome.deleteRecursively()
         }
     }
+
+    @Test
+    fun persistedSessionState_restoresCwdEnvAndHistoryAcrossEngineInstances() = runBlocking {
+        val tempHome = Files.createTempDirectory("arntcli_persist_home").toFile()
+        try {
+            val subDir = File(tempHome, "persisted_dir").apply { mkdirs() }
+            val sessionId = "session-persistent-1"
+
+            // First engine instance mutates cwd, exports env var, and runs commands
+            val engine1 = LocalProcessEngine(workingDirectory = tempHome)
+            engine1.execute("cd persisted_dir", sessionId)
+            engine1.execute("export PERSISTED_KEY=\"survives_restart\"", sessionId)
+            engine1.execute("pwd", sessionId)
+
+            // Second engine instance simulates cold app restart pointing to same home directory
+            val engine2 = LocalProcessEngine(workingDirectory = tempHome)
+            assertEquals("~/persisted_dir", engine2.getFormattedPromptCwd(sessionId))
+
+            val envRes = engine2.execute("printenv PERSISTED_KEY", sessionId)
+            assertEquals(0, envRes.exitCode)
+            assertEquals("survives_restart", envRes.output.first().trim())
+
+            val restoredHistory = engine2.getHistory(sessionId)
+            assertTrue(restoredHistory.contains("cd persisted_dir"))
+            assertTrue(restoredHistory.contains("export PERSISTED_KEY=\"survives_restart\""))
+
+            val cdPrevRes = engine2.execute("cd -", sessionId)
+            assertEquals(0, cdPrevRes.exitCode)
+            assertEquals("~", engine2.getFormattedPromptCwd(sessionId))
+        } finally {
+            tempHome.deleteRecursively()
+        }
+    }
 }

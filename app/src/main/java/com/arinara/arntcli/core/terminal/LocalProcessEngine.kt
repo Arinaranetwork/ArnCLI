@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -66,7 +67,7 @@ class ShellSessionState(
 
 /**
  * High-performance stateful on-device shell execution engine.
- * Maintains per-session working directories, environment variables, command history,
+ * Maintains and persists per-session working directories, environment variables, command history,
  * shell built-ins (`cd`, `pwd`, `export`, `unset`, `env`, `history`, `which`, `help`),
  * tab completion, and immediate process termination (`SIGINT`/`SIGKILL`) rootlessly on Android.
  */
@@ -89,6 +90,7 @@ class LocalProcessEngine(
     companion object {
         const val DEFAULT_SESSION_ID = "default"
         private const val PWD_MARKER_PREFIX = "__ARN_PWD__:"
+        private const val MAX_HISTORY_ENTRIES = 500
 
         val BUILTIN_COMMANDS = listOf(
             "cd", "pwd", "export", "unset", "env", "printenv",
@@ -116,8 +118,103 @@ class LocalProcessEngine(
         }
     }
 
+    private fun sessionStateFile(homeDir: File, sessionId: String): File {
+        val stateDir = File(homeDir, ".arncli_sessions").apply { mkdirs() }
+        val safeName = sessionId.replace(Regex("[^A-Za-z0-9_.-]"), "_")
+        return File(stateDir, "$safeName.state")
+    }
+
     /**
-     * Gets or initializes the stateful context for [sessionId].
+     * Persists a session's `cwd`, `previousCwd`, `env`, and `history` atomically to disk.
+     */
+    fun saveSessionState(sessionId: String = DEFAULT_SESSION_ID) {
+        val state = sessions[sessionId] ?: return
+        try {
+            val targetFile = sessionStateFile(state.homeDir, sessionId)
+            val tempFile = File(targetFile.parentFile, "${targetFile.name}.tmp")
+            val encoder = Base64.getEncoder()
+            val sb = StringBuilder()
+
+            sb.append("CWD:").append(encoder.encodeToString(state.cwd.absolutePath.toByteArray(Charsets.UTF_8))).append('\n')
+            sb.append("OLDPWD:").append(encoder.encodeToString(state.previousCwd.absolutePath.toByteArray(Charsets.UTF_8))).append('\n')
+
+            for ((k, v) in state.env.entries.sortedBy { it.key }) {
+                val encodedKey = encoder.encodeToString(k.toByteArray(Charsets.UTF_8))
+                val encodedVal = encoder.encodeToString(v.toByteArray(Charsets.UTF_8))
+                sb.append("ENV:").append(encodedKey).append(':').append(encodedVal).append('\n')
+            }
+
+            for (cmd in state.history.takeLast(MAX_HISTORY_ENTRIES)) {
+                val encodedCmd = encoder.encodeToString(cmd.toByteArray(Charsets.UTF_8))
+                sb.append("HIST:").append(encodedCmd).append('\n')
+            }
+
+            tempFile.writeText(sb.toString(), Charsets.UTF_8)
+            if (targetFile.exists()) {
+                targetFile.delete()
+            }
+            tempFile.renameTo(targetFile)
+        } catch (_: Exception) {
+            // Non-fatal if disk is temporarily unavailable
+        }
+    }
+
+    private fun loadPersistedStateInto(state: ShellSessionState, initialEnv: Map<String, String>) {
+        val file = sessionStateFile(state.homeDir, state.sessionId)
+        if (!file.exists() || !file.isFile) return
+        try {
+            val decoder = Base64.getDecoder()
+            val restoredHistory = mutableListOf<String>()
+            file.readLines(Charsets.UTF_8).forEach { line ->
+                when {
+                    line.startsWith("CWD:") -> {
+                        val path = String(decoder.decode(line.removePrefix("CWD:")), Charsets.UTF_8)
+                        val dir = File(path)
+                        if (dir.exists() && dir.isDirectory) {
+                            state.cwd = dir
+                        }
+                    }
+                    line.startsWith("OLDPWD:") -> {
+                        val path = String(decoder.decode(line.removePrefix("OLDPWD:")), Charsets.UTF_8)
+                        val dir = File(path)
+                        if (dir.exists() && dir.isDirectory) {
+                            state.previousCwd = dir
+                        }
+                    }
+                    line.startsWith("ENV:") -> {
+                        val parts = line.removePrefix("ENV:").split(':', limit = 2)
+                        if (parts.size == 2) {
+                            val k = String(decoder.decode(parts[0]), Charsets.UTF_8)
+                            val v = String(decoder.decode(parts[1]), Charsets.UTF_8)
+                            state.env[k] = v
+                        }
+                    }
+                    line.startsWith("HIST:") -> {
+                        val cmd = String(decoder.decode(line.removePrefix("HIST:")), Charsets.UTF_8)
+                        if (cmd.isNotBlank()) {
+                            restoredHistory.add(cmd)
+                        }
+                    }
+                }
+            }
+            if (restoredHistory.isNotEmpty()) {
+                state.history.clear()
+                state.history.addAll(restoredHistory.takeLast(MAX_HISTORY_ENTRIES))
+            }
+            // Ensure mandatory paths and explicit initialEnv overrides remain accurate
+            state.env["HOME"] = state.homeDir.absolutePath
+            state.env["TMPDIR"] = state.tmpDir.absolutePath
+            state.env["PWD"] = state.cwd.absolutePath
+            state.env["OLDPWD"] = state.previousCwd.absolutePath
+            state.env.putAll(initialEnv)
+        } catch (_: Exception) {
+            // Ignore malformed state file
+        }
+    }
+
+    /**
+     * Gets or initializes the stateful context for [sessionId], automatically restoring
+     * any persisted working directory, environment variables, and command history from disk.
      */
     fun getOrCreateSession(
         sessionId: String = DEFAULT_SESSION_ID,
@@ -133,7 +230,9 @@ class LocalProcessEngine(
                 tmpDir = resolvedTmp,
                 initialCwd = resolvedHome,
                 initialEnv = initialEnv
-            )
+            ).also { created ->
+                loadPersistedStateInto(created, initialEnv)
+            }
         }
     }
 
@@ -182,11 +281,19 @@ class LocalProcessEngine(
     }
 
     /**
-     * Removes session state when a terminal tab is closed.
+     * Removes session state and deletes its persisted session file when a terminal tab is closed.
      */
     fun closeSession(sessionId: String) {
         killActiveProcess(sessionId)
-        sessions.remove(sessionId)
+        val removed = sessions.remove(sessionId)
+        val home = removed?.homeDir ?: defaultHomeDir
+        try {
+            val file = sessionStateFile(home, sessionId)
+            if (file.exists()) {
+                file.delete()
+            }
+        } catch (_: Exception) {
+        }
     }
 
     private fun isWindowsShell(): Boolean {
@@ -267,6 +374,7 @@ class LocalProcessEngine(
             val value = unquote(cmd.substringAfter("="))
             if (key.matches(Regex("[A-Za-z_][A-Za-z0-9_]*"))) {
                 state.env[key] = value
+                saveSessionState(state.sessionId)
                 return ShellResult(0, emptyList(), emptyList())
             }
         }
@@ -325,12 +433,12 @@ class LocalProcessEngine(
                                 errors.add("export: `$arg': not a valid identifier")
                             }
                         } else if (arg.matches(Regex("[A-Za-z_][A-Za-z0-9_]*"))) {
-                            // Export existing variable or initialize empty
                             state.env.putIfAbsent(arg, "")
                         } else {
                             errors.add("export: `$arg': not a valid identifier")
                         }
                     }
+                    saveSessionState(state.sessionId)
                     ShellResult(if (errors.isEmpty()) 0 else 1, emptyList(), errors)
                 }
             }
@@ -339,6 +447,7 @@ class LocalProcessEngine(
                 for (arg in args) {
                     state.env.remove(arg)
                 }
+                saveSessionState(state.sessionId)
                 ShellResult(0, emptyList(), emptyList())
             }
 
@@ -362,6 +471,7 @@ class LocalProcessEngine(
             "history" -> {
                 if (args.firstOrNull() == "-c") {
                     state.history.clear()
+                    saveSessionState(state.sessionId)
                     ShellResult(0, emptyList(), emptyList())
                 } else {
                     val lines = state.history.mapIndexed { idx, entry ->
@@ -402,7 +512,7 @@ class LocalProcessEngine(
                     "Working Dir    : ${state.cwd.absolutePath}",
                     "",
                     "Built-in Commands:",
-                    "  cd [dir|-|~]       Change working directory (persists across commands)",
+                    "  cd [dir|-|~]       Change working directory (persists across commands & restarts)",
                     "  pwd                Print current working directory",
                     "  export KEY=VAL     Set persistent session environment variable",
                     "  unset KEY          Remove session environment variable",
@@ -431,6 +541,7 @@ class LocalProcessEngine(
         state.cwd = newCwd
         state.env["OLDPWD"] = state.previousCwd.absolutePath
         state.env["PWD"] = state.cwd.absolutePath
+        saveSessionState(state.sessionId)
     }
 
     private fun findExecutableInPath(name: String, state: ShellSessionState): File? {
@@ -455,8 +566,6 @@ class LocalProcessEngine(
         val commandArgs = if (isWin) {
             listOf(shellExecutable, "/c", command)
         } else {
-            // Wrap command so any subshell `cd` in a compound command (e.g. `mkdir a && cd a`)
-            // reports its final working directory back to the session engine while preserving exit code.
             val wrappedCommand = "$command\n__arn_rc=\$?\nprintf \"\\n${PWD_MARKER_PREFIX}%s\\n\" \"\$(pwd)\"\nexit \$__arn_rc"
             listOf(shellExecutable, "-c", wrappedCommand)
         }
@@ -474,6 +583,16 @@ class LocalProcessEngine(
         return builder
     }
 
+    private fun recordCommandInHistory(state: ShellSessionState, rawTrimmed: String) {
+        if (state.history.lastOrNull() != rawTrimmed) {
+            state.history.add(rawTrimmed)
+            while (state.history.size > MAX_HISTORY_ENTRIES) {
+                state.history.removeAt(0)
+            }
+            saveSessionState(state.sessionId)
+        }
+    }
+
     /**
      * Executes a single command string in [sessionId] and streams output lines asynchronously.
      */
@@ -485,10 +604,7 @@ class LocalProcessEngine(
         val rawTrimmed = command.trim()
         if (rawTrimmed.isEmpty()) return@flow
 
-        // Record in session history (avoid consecutive duplicates)
-        if (state.history.lastOrNull() != rawTrimmed) {
-            state.history.add(rawTrimmed)
-        }
+        recordCommandInHistory(state, rawTrimmed)
 
         val processedCommand = preprocessCommand(rawTrimmed, state)
         val builtinResult = evaluateBuiltinIfApplicable(processedCommand, state)
@@ -548,9 +664,7 @@ class LocalProcessEngine(
             return@withContext ShellResult(0, emptyList(), emptyList())
         }
 
-        if (state.history.lastOrNull() != rawTrimmed) {
-            state.history.add(rawTrimmed)
-        }
+        recordCommandInHistory(state, rawTrimmed)
 
         val processedCommand = preprocessCommand(rawTrimmed, state)
         val builtinResult = evaluateBuiltinIfApplicable(processedCommand, state)
