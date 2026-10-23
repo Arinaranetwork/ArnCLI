@@ -47,10 +47,6 @@ class SftpEngine(
         }
     }
 
-    init {
-        loadDefaultSampleFiles(_currentPath.value)
-    }
-
     fun cd(directoryName: String) {
         val target = when {
             directoryName.startsWith("/") -> directoryName
@@ -59,14 +55,12 @@ class SftpEngine(
         }
         val normalized = normalizePath(target)
         _currentPath.value = normalized
-        loadDefaultSampleFiles(normalized)
     }
 
     fun cdUp(): Boolean {
         if (_currentPath.value == "/") return false
         val parent = normalizePath("${_currentPath.value}/..")
         _currentPath.value = parent
-        loadDefaultSampleFiles(parent)
         return true
     }
 
@@ -74,25 +68,7 @@ class SftpEngine(
         _files.value = sortFiles(fileList)
     }
 
-    private fun loadDefaultSampleFiles(path: String) {
-        val sample = when (path) {
-            "/", "/root" -> listOf(
-                SftpRemoteFile("etc", "$path/etc", 4096, SftpFileType.Directory, 493),
-                SftpRemoteFile("home", "$path/home", 4096, SftpFileType.Directory, 493),
-                SftpRemoteFile("var", "$path/var", 4096, SftpFileType.Directory, 493),
-                SftpRemoteFile("boot.log", "$path/boot.log", 12450, SftpFileType.Regular, 420)
-            )
-            "/home/user" -> listOf(
-                SftpRemoteFile(".ssh", "$path/.ssh", 4096, SftpFileType.Directory, 448),
-                SftpRemoteFile("projects", "$path/projects", 4096, SftpFileType.Directory, 493),
-                SftpRemoteFile("docker-compose.yml", "$path/docker-compose.yml", 1850, SftpFileType.Regular, 420),
-                SftpRemoteFile("server.conf", "$path/server.conf", 412, SftpFileType.Regular, 420)
-            )
-            else -> listOf(
-                SftpRemoteFile("config.json", "$path/config.json", 980, SftpFileType.Regular, 420),
-                SftpRemoteFile("data", "$path/data", 4096, SftpFileType.Directory, 493)
-            )
-        }
-        setDirectoryFiles(sample)
+    fun clearDirectoryFiles() {
+        _files.value = emptyList()
     }
 }

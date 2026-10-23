@@ -35,6 +35,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +68,7 @@ fun DesktopViewerSheet(
     modifier: Modifier = Modifier
 ) {
     val controller = remember { VncSessionController() }
+    val coroutineScope = rememberCoroutineScope()
     val status by controller.status.collectAsState()
     val pointerX by controller.pointerX.collectAsState()
     val pointerY by controller.pointerY.collectAsState()
@@ -148,11 +151,24 @@ fun DesktopViewerSheet(
                     }
 
                     AppButton(
-                        text = if (status == DesktopConnectionStatus.Connected) "Disconnect" else "Connect",
+                        text = when (status) {
+                            DesktopConnectionStatus.Connected -> "Disconnect"
+                            DesktopConnectionStatus.Connecting -> "Connecting..."
+                            else -> "Connect"
+                        },
                         variant = if (status == DesktopConnectionStatus.Connected) AppButtonVariant.Secondary else AppButtonVariant.Primary,
+                        enabled = status != DesktopConnectionStatus.Connecting,
                         onClick = {
-                            if (status == DesktopConnectionStatus.Connected) controller.disconnect()
-                            else controller.connect()
+                            if (status == DesktopConnectionStatus.Connected) {
+                                controller.disconnect()
+                            } else {
+                                coroutineScope.launch {
+                                    val parts = hostLabel.split(':')
+                                    val host = parts.getOrNull(0) ?: "127.0.0.1"
+                                    val port = parts.getOrNull(1)?.toIntOrNull() ?: 5900
+                                    controller.connect(host, port)
+                                }
+                            }
                         }
                     )
                 }

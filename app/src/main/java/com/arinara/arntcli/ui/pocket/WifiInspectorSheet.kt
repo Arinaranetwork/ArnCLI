@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +26,8 @@ import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arinara.arntcli.core.net.WifiConnectionDetails
@@ -93,114 +97,150 @@ fun WifiInspectorSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             details?.let { info ->
-                // Primary Network Card
-                AppCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    isGlow = true
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                if (!info.isConnected) {
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        isGlow = false
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp, horizontal = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            Icon(
+                                imageVector = Icons.Outlined.WifiOff,
+                                contentDescription = "Disconnected",
+                                tint = ElectricSlateTokens.TextMuted,
+                                modifier = Modifier.size(32.dp)
+                            )
                             Text(
-                                text = info.ssid,
+                                text = "Wi-Fi Disconnected",
                                 fontFamily = ElmsSans,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
+                                fontSize = 16.sp,
                                 color = ElectricSlateTokens.TextPrimary
                             )
-
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(999.dp))
-                                    .background(ElectricSlateTokens.SurfaceElevated)
-                                    .border(
-                                        width = 1.dp,
-                                        color = ElectricSlateTokens.BorderSubtle,
-                                        shape = RoundedCornerShape(999.dp)
-                                    )
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "${info.signalQuality} (${info.signalPercent}%)",
-                                    fontFamily = FontFamily.Monospace,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 11.sp,
-                                    color = ElectricSlateTokens.PrimaryAccent
-                                )
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
                             Text(
-                                text = "RSSI: ${info.rssiDbm} dBm",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Normal,
+                                text = "No active Wi-Fi association detected on this device. Connect to a wireless access point in Settings to inspect metrics.",
+                                fontFamily = ElmsSans,
                                 fontSize = 12.sp,
-                                color = ElectricSlateTokens.TextMuted
-                            )
-                            Text(
-                                text = "•",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 12.sp,
-                                color = ElectricSlateTokens.TextMuted
-                            )
-                            Text(
-                                text = "Band: ${info.frequencyBand}",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 12.sp,
-                                color = ElectricSlateTokens.TextMuted
+                                color = ElectricSlateTokens.TextMuted,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
+                } else {
+                    // Primary Network Card
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        isGlow = true
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = info.ssid,
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    color = ElectricSlateTokens.TextPrimary
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(999.dp))
+                                        .background(ElectricSlateTokens.SurfaceElevated)
+                                        .border(
+                                            width = 1.dp,
+                                            color = ElectricSlateTokens.BorderSubtle,
+                                            shape = RoundedCornerShape(999.dp)
+                                        )
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "${info.signalQuality} (${info.signalPercent}%)",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 11.sp,
+                                        color = ElectricSlateTokens.PrimaryAccent
+                                    )
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "RSSI: ${info.rssiDbm} dBm",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.TextMuted
+                                )
+                                Text(
+                                    text = "•",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.TextMuted
+                                )
+                                Text(
+                                    text = "Band: ${info.frequencyBand}",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.TextMuted
+                                )
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = "Connection Metrics",
+                        fontFamily = ElmsSans,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = ElectricSlateTokens.TextPrimary
+                    )
+
+                    AppListItem(
+                        title = "Link Speed",
+                        subtitle = "${info.linkSpeedMbps} Mbps",
+                        leadingIcon = Icons.Outlined.Speed,
+                        leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+                        action = AppListItemAction.Chevron
+                    )
+
+                    AppListItem(
+                        title = "Local IP Address",
+                        subtitle = info.ipAddress,
+                        leadingIcon = Icons.Outlined.Dns,
+                        leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+                        action = AppListItemAction.Chevron
+                    )
+
+                    AppListItem(
+                        title = "Access Point BSSID",
+                        subtitle = info.bssid,
+                        leadingIcon = Icons.Outlined.Wifi,
+                        leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+                        action = AppListItemAction.Chevron
+                    )
+
+                    AppListItem(
+                        title = "Interface Adapter",
+                        subtitle = info.interfaceName,
+                        leadingIcon = Icons.Outlined.Check,
+                        leadingIconTint = ElectricSlateTokens.PrimaryAccent,
+                        action = AppListItemAction.Chevron
+                    )
                 }
-
-                Text(
-                    text = "Connection Metrics",
-                    fontFamily = ElmsSans,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = ElectricSlateTokens.TextPrimary
-                )
-
-                AppListItem(
-                    title = "Link Speed",
-                    subtitle = "${info.linkSpeedMbps} Mbps",
-                    leadingIcon = Icons.Outlined.Speed,
-                    leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-                    action = AppListItemAction.Chevron
-                )
-
-                AppListItem(
-                    title = "Local IP Address",
-                    subtitle = info.ipAddress,
-                    leadingIcon = Icons.Outlined.Dns,
-                    leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-                    action = AppListItemAction.Chevron
-                )
-
-                AppListItem(
-                    title = "Access Point BSSID",
-                    subtitle = info.bssid,
-                    leadingIcon = Icons.Outlined.Wifi,
-                    leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-                    action = AppListItemAction.Chevron
-                )
-
-                AppListItem(
-                    title = "Interface Adapter",
-                    subtitle = info.interfaceName,
-                    leadingIcon = Icons.Outlined.Check,
-                    leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-                    action = AppListItemAction.Chevron
-                )
             }
 
             Spacer(modifier = Modifier.height(4.dp))

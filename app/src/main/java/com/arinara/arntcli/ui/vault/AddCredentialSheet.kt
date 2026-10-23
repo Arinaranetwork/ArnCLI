@@ -52,6 +52,8 @@ import com.arinara.arntcli.core.vault.VaultEngine
 import com.arinara.arntcli.ui.components.presets.AppBottomSheet
 import com.arinara.arntcli.ui.components.presets.AppButton
 import com.arinara.arntcli.ui.components.presets.AppButtonVariant
+import com.arinara.arntcli.ui.components.presets.AppNoticeBanner
+import com.arinara.arntcli.ui.components.presets.AppNoticeVariant
 import com.arinara.arntcli.ui.components.presets.AppPillChip
 import com.arinara.arntcli.ui.model.CredentialType
 import com.arinara.arntcli.ui.model.VaultCredential
@@ -96,6 +98,13 @@ fun AddCredentialSheet(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            AppNoticeBanner(
+                visible = errorMessage != null,
+                message = errorMessage ?: "",
+                variant = AppNoticeVariant.ERROR,
+                onDismiss = { errorMessage = null }
+            )
+
             Text(
                 text = "Credential Type",
                 fontFamily = ElmsSans,

@@ -77,7 +77,7 @@ class WifiInspectorEngine {
 
     suspend fun inspect(context: Context? = null): WifiConnectionDetails = withContext(Dispatchers.IO) {
         if (context != null) {
-            runCatching {
+            val wifiDetails = runCatching {
                 val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
                 val info = wifiManager?.connectionInfo
                 if (info != null && info.networkId != -1) {
@@ -92,7 +92,7 @@ class WifiInspectorEngine {
                     val band = calculateBand(freq)
                     val ip = formatIpAddress(info.ipAddress)
 
-                    return@withContext WifiConnectionDetails(
+                    WifiConnectionDetails(
                         ssid = ssid,
                         bssid = bssid,
                         rssiDbm = rssi,
@@ -105,7 +105,25 @@ class WifiInspectorEngine {
                         interfaceName = "wlan0",
                         isConnected = true
                     )
+                } else {
+                    WifiConnectionDetails(
+                        ssid = "Not Connected",
+                        bssid = "00:00:00:00:00:00",
+                        rssiDbm = -100,
+                        signalPercent = 0,
+                        signalQuality = "No Signal",
+                        linkSpeedMbps = 0,
+                        frequencyMhz = 0,
+                        frequencyBand = "N/A",
+                        ipAddress = "0.0.0.0",
+                        interfaceName = "wlan0",
+                        isConnected = false
+                    )
                 }
+            }.getOrNull()
+
+            if (wifiDetails != null) {
+                return@withContext wifiDetails
             }
         }
 
@@ -132,20 +150,21 @@ class WifiInspectorEngine {
             // Safe fallback
         }
 
-        val simulatedRssi = -58
-        val percent = calculateSignalPercent(simulatedRssi)
+        val hasActiveInterface = ifaceName != "lo" || detectedIp != "0.0.0.0"
+        val rssi = if (hasActiveInterface) -65 else -100
+        val percent = calculateSignalPercent(rssi)
         return WifiConnectionDetails(
-            ssid = "Local Wi-Fi Network",
-            bssid = "00:1A:2B:3C:4D:5E",
-            rssiDbm = simulatedRssi,
+            ssid = if (hasActiveInterface) "Network Interface ($ifaceName)" else "Disconnected",
+            bssid = "00:00:00:00:00:00",
+            rssiDbm = rssi,
             signalPercent = percent,
             signalQuality = calculateSignalQuality(percent),
-            linkSpeedMbps = 866,
-            frequencyMhz = 5180,
-            frequencyBand = calculateBand(5180),
+            linkSpeedMbps = if (hasActiveInterface) 100 else 0,
+            frequencyMhz = if (hasActiveInterface) 2412 else 0,
+            frequencyBand = if (hasActiveInterface) calculateBand(2412) else "N/A",
             ipAddress = detectedIp,
             interfaceName = ifaceName,
-            isConnected = true
+            isConnected = hasActiveInterface
         )
     }
 }

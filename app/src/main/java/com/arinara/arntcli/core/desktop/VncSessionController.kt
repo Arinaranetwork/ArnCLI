@@ -6,10 +6,16 @@
 
 package com.arinara.arntcli.core.desktop
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.InetSocketAddress
+import java.net.Socket
 
 enum class DesktopConnectionStatus {
     Disconnected,
@@ -51,9 +57,28 @@ class VncSessionController(
     private val _lastAction = MutableStateFlow("Session Ready")
     val lastAction: StateFlow<String> = _lastAction.asStateFlow()
 
-    fun connect() {
-        _status.value = DesktopConnectionStatus.Connected
-        _lastAction.value = "Connected to RFB display (${serverWidth}x${serverHeight})"
+    suspend fun connect(host: String = "127.0.0.1", port: Int = 5900): Boolean = withContext(Dispatchers.IO) {
+        _status.value = DesktopConnectionStatus.Connecting
+        _lastAction.value = "Attempting RFB socket connection to $host:$port..."
+        try {
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress(host, port), 1200)
+                val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+                val version = reader.readLine() ?: ""
+                if (version.startsWith("RFB")) {
+                    _status.value = DesktopConnectionStatus.Connected
+                    _lastAction.value = "Connected to $version (${serverWidth}x${serverHeight})"
+                    return@withContext true
+                }
+            }
+            _status.value = DesktopConnectionStatus.Error
+            _lastAction.value = "RFB handshake failed on $host:$port"
+            false
+        } catch (e: Exception) {
+            _status.value = DesktopConnectionStatus.Error
+            _lastAction.value = "Unable to connect to $host:$port. Ensure VNC/RDP server or tunnel is active."
+            false
+        }
     }
 
     fun disconnect() {

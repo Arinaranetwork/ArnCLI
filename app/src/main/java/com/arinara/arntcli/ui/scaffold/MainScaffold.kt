@@ -288,26 +288,40 @@ fun MainScaffold(
                                     if (s.id == sessionId) s.copy(lines = emptyList()) else s
                                 }
                             } else {
-                                sessions = sessions.map { s ->
-                                    if (s.id == sessionId) s.copy(lines = (s.lines + "$ $cmd").takeLast(500)) else s
-                                }
-                                activeSessionJobs[sessionId]?.cancel()
-                                activeSessionJobs[sessionId] = coroutineScope.launch {
-                                    try {
-                                        processEngine.executeStreaming(cmd).collect { outputLine ->
+                                val targetSession = sessions.find { it.id == sessionId }
+                                val isLocal = targetSession?.title?.startsWith("local:") == true
+
+                                if (isLocal) {
+                                    sessions = sessions.map { s ->
+                                        if (s.id == sessionId) s.copy(lines = (s.lines + "$ $cmd").takeLast(500)) else s
+                                    }
+                                    activeSessionJobs[sessionId]?.cancel()
+                                    activeSessionJobs[sessionId] = coroutineScope.launch {
+                                        try {
+                                            processEngine.executeStreaming(cmd).collect { outputLine ->
+                                                sessions = sessions.map { s ->
+                                                    if (s.id == sessionId) {
+                                                        s.copy(lines = (s.lines + outputLine).takeLast(500))
+                                                    } else s
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            val err = "Error: ${e.message ?: "Execution failed"}"
                                             sessions = sessions.map { s ->
                                                 if (s.id == sessionId) {
-                                                    s.copy(lines = (s.lines + outputLine).takeLast(500))
+                                                    s.copy(lines = (s.lines + err).takeLast(500))
                                                 } else s
                                             }
                                         }
-                                    } catch (e: Exception) {
-                                        val err = "Error: ${e.message ?: "Execution failed"}"
-                                        sessions = sessions.map { s ->
-                                            if (s.id == sessionId) {
-                                                s.copy(lines = (s.lines + err).takeLast(500))
-                                            } else s
-                                        }
+                                    }
+                                } else {
+                                    val remoteNotice = listOf(
+                                        "$ $cmd",
+                                        "[Session] Standby: Remote channel to ${targetSession?.shell} is awaiting network route.",
+                                        "[Session] To execute shell commands directly on this device, switch to a local:sh session tab."
+                                    )
+                                    sessions = sessions.map { s ->
+                                        if (s.id == sessionId) s.copy(lines = (s.lines + remoteNotice).takeLast(500)) else s
                                     }
                                 }
                             }
@@ -334,12 +348,13 @@ fun MainScaffold(
                         onHostClick = { host ->
                             val bannerLines = mutableListOf(
                                 "ArnCLI Remote Connection [Space: ${activeSpace.name}]",
-                                "Connected to ${host.name} (${host.address}:${host.port}) via ${host.protocol}"
+                                "Host: ${host.name} (${host.address}:${host.port}) via ${host.protocol}"
                             )
                             if (!host.jumpHost.isNullOrBlank()) {
-                                bannerLines.add("[ProxyJump] Chained through Bastion: ${host.jumpHost}")
+                                bannerLines.add("[ProxyJump] Bastion proxy configured: ${host.jumpHost}")
                             }
-                            bannerLines.add("Authenticated as ${host.username}. Remote session ready.")
+                            bannerLines.add("Credentials: ${host.username}")
+                            bannerLines.add("[Info] Remote session registered. Forward sockets via Port Forwarding or WireGuard tunnel.")
 
                             val session = TerminalSession(
                                 id = "session-${host.id}",

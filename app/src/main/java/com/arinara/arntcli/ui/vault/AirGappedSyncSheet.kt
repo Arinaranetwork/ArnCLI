@@ -506,44 +506,23 @@ fun AirGappedSyncSheet(
                             }
                         )
 
-                        Row(
+                        AppButton(
+                            text = "Submit Frame",
+                            variant = AppButtonVariant.Primary,
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            AppButton(
-                                text = "Submit Frame",
-                                variant = AppButtonVariant.Primary,
-                                modifier = Modifier.weight(1f),
-                                onClick = {
-                                    val accepted = receiver.ingestFrame(inputFrameText)
-                                    if (accepted) {
-                                        ingestedCount++
-                                        receiverProgress = receiver.progress
-                                        isReceiverComplete = receiver.isComplete
-                                        inputFrameText = ""
-                                        errorMessage = null
-                                    } else {
-                                        errorMessage = "Malformed or invalid BC-UR frame rejected."
-                                    }
-                                }
-                            )
-
-                            // Quick Simulate / Test Button
-                            AppButton(
-                                text = "Simulate Ingest",
-                                variant = AppButtonVariant.Secondary,
-                                onClick = {
-                                    // Ingest all frames sequentially for quick testing
-                                    frames.forEach { f ->
-                                        receiver.ingestFrame(f)
-                                    }
-                                    ingestedCount = frames.size
+                            onClick = {
+                                val accepted = receiver.ingestFrame(inputFrameText)
+                                if (accepted) {
+                                    ingestedCount++
                                     receiverProgress = receiver.progress
                                     isReceiverComplete = receiver.isComplete
+                                    inputFrameText = ""
                                     errorMessage = null
+                                } else {
+                                    errorMessage = "Malformed or invalid BC-UR frame rejected."
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
 

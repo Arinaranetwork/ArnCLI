@@ -55,18 +55,18 @@ class StorageEngine(
         }
     }
 
-    init {
-        loadSampleData(_currentPath.value)
-    }
-
     fun setStorageType(type: StorageType) {
         _storageType.value = type
         _currentPath.value = "/"
-        loadSampleData("/")
+        _nodes.value = emptyList()
     }
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun setNodes(nodes: List<StorageNode>) {
+        _nodes.value = sortNodes(nodes)
     }
 
     fun cd(directoryName: String) {
@@ -77,14 +77,12 @@ class StorageEngine(
         }
         val normalized = normalizePath(target)
         _currentPath.value = normalized
-        loadSampleData(normalized)
     }
 
     fun cdUp(): Boolean {
         if (_currentPath.value == "/") return false
         val parent = normalizePath("${_currentPath.value}/..")
         _currentPath.value = parent
-        loadSampleData(parent)
         return true
     }
 
@@ -92,50 +90,5 @@ class StorageEngine(
         val scheme = _storageType.value.scheme
         val path = if (_currentPath.value == "/") "" else _currentPath.value
         return "$scheme://$endpoint$path"
-    }
-
-    private fun loadSampleData(path: String) {
-        val type = _storageType.value
-        val sample = when (type) {
-            StorageType.Smb -> when (path) {
-                "/" -> listOf(
-                    StorageNode("smb-1", "backups", "/backups", 0, true, type, 493),
-                    StorageNode("smb-2", "docker-volumes", "/docker-volumes", 0, true, type, 493),
-                    StorageNode("smb-3", "media", "/media", 0, true, type, 493),
-                    StorageNode("smb-4", "server-setup.sh", "/server-setup.sh", 2450, false, type, 493)
-                )
-                "/backups" -> listOf(
-                    StorageNode("smb-5", "postgres-daily.sql.gz", "$path/postgres-daily.sql.gz", 125_829_120, false, type, 420),
-                    StorageNode("smb-6", "vault-export.json.enc", "$path/vault-export.json.enc", 12_400, false, type, 384)
-                )
-                else -> listOf(
-                    StorageNode("smb-7", "notes.txt", "$path/notes.txt", 1024, false, type, 420)
-                )
-            }
-            StorageType.S3 -> when (path) {
-                "/" -> listOf(
-                    StorageNode("s3-1", "production-logs", "/production-logs", 0, true, type, 493),
-                    StorageNode("s3-2", "user-assets", "/user-assets", 0, true, type, 493),
-                    StorageNode("s3-3", "terraform.tfstate", "/terraform.tfstate", 35_800, false, type, 420, etag = "\"9b2c1a8f9\"")
-                )
-                "/production-logs" -> listOf(
-                    StorageNode("s3-4", "app-2026-10-22.log.zst", "$path/app-2026-10-22.log.zst", 45_200_000, false, type, 420, etag = "\"4d1e2f3a\""),
-                    StorageNode("s3-5", "audit-events.json", "$path/audit-events.json", 8_900_000, false, type, 420, etag = "\"7c8b9a0d\"")
-                )
-                else -> listOf(
-                    StorageNode("s3-6", "manifest.json", "$path/manifest.json", 512, false, type, 420)
-                )
-            }
-            StorageType.WebDAV -> listOf(
-                StorageNode("dav-1", "Documents", "$path/Documents", 0, true, type, 493),
-                StorageNode("dav-2", "Photos", "$path/Photos", 0, true, type, 493),
-                StorageNode("dav-3", "Nextcloud-Manual.pdf", "$path/Nextcloud-Manual.pdf", 4_200_000, false, type, 420)
-            )
-            StorageType.Nfs -> listOf(
-                StorageNode("nfs-1", "export", "$path/export", 0, true, type, 493),
-                StorageNode("nfs-2", "shared-data", "$path/shared-data", 0, true, type, 493)
-            )
-        }
-        _nodes.value = sortNodes(sample)
     }
 }

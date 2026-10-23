@@ -56,4 +56,16 @@ class SnippetInterpolationEngineTest {
 
         assertEquals(listOf("user", "vault_secret:pass", "port"), tokens)
     }
+
+    @Test
+    fun interpolateMasked_masksVaultSecrets() {
+        val context = SnippetInterpolationEngine.Context(
+            host = "api.arinara.io",
+            vaultSecretResolver = { "RawSecretToken12345" }
+        )
+        val template = "curl -H 'Authorization: Bearer {{vault_secret:api_token}}' https://{{host}}/v1"
+        val masked = SnippetInterpolationEngine.interpolateMasked(template, context)
+
+        assertEquals("curl -H 'Authorization: Bearer [SECRET:api_token]' https://api.arinara.io/v1", masked)
+    }
 }

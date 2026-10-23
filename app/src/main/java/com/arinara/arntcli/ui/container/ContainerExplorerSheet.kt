@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arinara.arntcli.core.container.ContainerItem
@@ -64,8 +65,12 @@ import com.arinara.arntcli.ui.components.presets.AppPillChip
 import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 
 enum class ContainerTab {
     Containers,
@@ -97,82 +102,41 @@ fun ContainerExplorerSheet(
     fun refreshData() {
         coroutineScope.launch {
             isRefreshing = true
-            delay(150)
-
-            // Populate sample state based on Docker JSON parsers
-            val sampleContainersJson = """
-                [
-                  {
-                    "Id": "4f8a32b1e7c9081234567890abcdef1234567890abcdef1234567890abcdef12",
-                    "Names": ["/web-nginx"],
-                    "Image": "nginx:alpine",
-                    "State": "running",
-                    "Status": "Up 4 days",
-                    "Ports": [
-                      { "IP": "0.0.0.0", "PrivatePort": 80, "PublicPort": 8080, "Type": "tcp" }
-                    ]
-                  },
-                  {
-                    "Id": "9b1c7e4a5d8f01234567890abcdef1234567890abcdef1234567890abcdef34",
-                    "Names": ["/postgres-db"],
-                    "Image": "postgres:16-alpine",
-                    "State": "running",
-                    "Status": "Up 12 days",
-                    "Ports": [
-                      { "IP": "127.0.0.1", "PrivatePort": 5432, "PublicPort": 5432, "Type": "tcp" }
-                    ]
-                  },
-                  {
-                    "Id": "1a2b3c4d5e6f01234567890abcdef1234567890abcdef1234567890abcdef56",
-                    "Names": ["/redis-cache"],
-                    "Image": "redis:7.2",
-                    "State": "exited",
-                    "Status": "Exited (0) 2 hours ago",
-                    "Ports": []
-                  }
-                ]
-            """.trimIndent()
-            containers = DockerRemoteEngine.parseContainersJson(sampleContainersJson)
-
-            val sampleImagesJson = """
-                [
-                  { "Id": "sha256:bb27825", "RepoTags": ["nginx:alpine"], "Created": 1698000000, "Size": 23456789 },
-                  { "Id": "sha256:cc98104", "RepoTags": ["postgres:16-alpine"], "Created": 1697500000, "Size": 378901234 },
-                  { "Id": "sha256:dd12345", "RepoTags": ["redis:7.2"], "Created": 1697000000, "Size": 117440512 }
-                ]
-            """.trimIndent()
-            images = DockerRemoteEngine.parseImagesJson(sampleImagesJson)
-
-            val samplePodsJson = """
-                {
-                  "items": [
-                    {
-                      "metadata": { "name": "core-api-7b89f5-4k8p2", "namespace": "default" },
-                      "spec": { "nodeName": "k8s-worker-1" },
-                      "status": {
-                        "phase": "Running",
-                        "podIP": "10.244.1.24",
-                        "containerStatuses": [
-                          { "name": "api", "ready": true, "restartCount": 0 }
-                        ]
-                      }
-                    },
-                    {
-                      "metadata": { "name": "payment-worker-8c90a1-9q2z1", "namespace": "production" },
-                      "spec": { "nodeName": "k8s-worker-2" },
-                      "status": {
-                        "phase": "Running",
-                        "podIP": "10.244.2.19",
-                        "containerStatuses": [
-                          { "name": "worker", "ready": true, "restartCount": 1 }
-                        ]
-                      }
+            withContext(Dispatchers.IO) {
+                try {
+                    val url = URL("http://127.0.0.1:2375/v1.43/containers/json?all=1")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 800
+                    conn.readTimeout = 800
+                    if (conn.responseCode in 200..299) {
+                        val body = conn.inputStream.bufferedReader().use { it.readText() }
+                        containers = DockerRemoteEngine.parseContainersJson(body)
+                    } else {
+                        containers = emptyList()
                     }
-                  ]
+                    conn.disconnect()
+                } catch (_: Exception) {
+                    containers = emptyList()
                 }
-            """.trimIndent()
-            pods = KubeClusterEngine.parsePodsJson(samplePodsJson)
 
+                try {
+                    val url = URL("http://127.0.0.1:2375/v1.43/images/json")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 800
+                    conn.readTimeout = 800
+                    if (conn.responseCode in 200..299) {
+                        val body = conn.inputStream.bufferedReader().use { it.readText() }
+                        images = DockerRemoteEngine.parseImagesJson(body)
+                    } else {
+                        images = emptyList()
+                    }
+                    conn.disconnect()
+                } catch (_: Exception) {
+                    images = emptyList()
+                }
+
+                pods = emptyList()
+            }
             isRefreshing = false
         }
     }
@@ -235,7 +199,33 @@ fun ContainerExplorerSheet(
 
             when (activeTab) {
                 ContainerTab.Containers -> {
-                    containers.forEach { container ->
+                    if (containers.isEmpty()) {
+                        AppCard(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp, horizontal = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = "No Containers Detected",
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = ElectricSlateTokens.TextPrimary
+                                )
+                                Text(
+                                    text = "Connect to a Docker daemon or forward socket /var/run/docker.sock via SSH tunnel to inspect running containers.",
+                                    fontFamily = ElmsSans,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.TextMuted,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        containers.forEach { container ->
                         AppCard(modifier = Modifier.fillMaxWidth()) {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(
@@ -353,99 +343,154 @@ fun ContainerExplorerSheet(
                         }
                     }
                 }
+            }
 
-                ContainerTab.Images -> {
-                    images.forEach { img ->
+            ContainerTab.Images -> {
+                    if (images.isEmpty()) {
                         AppCard(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp, horizontal = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Column {
-                                    Text(
-                                        text = img.primaryTag,
-                                        fontFamily = ElmsSans,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = ElectricSlateTokens.TextPrimary
-                                    )
-                                    Text(
-                                        text = "ID: ${img.shortId}",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 11.sp,
-                                        color = ElectricSlateTokens.TextMuted
-                                    )
-                                }
-
                                 Text(
-                                    text = img.formattedSize(),
-                                    fontFamily = FontFamily.Monospace,
+                                    text = "No Docker Images Found",
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = ElectricSlateTokens.TextPrimary
+                                )
+                                Text(
+                                    text = "Images pulled or built on the remote Docker host will appear here.",
+                                    fontFamily = ElmsSans,
                                     fontSize = 12.sp,
-                                    color = ElectricSlateTokens.PrimaryAccent
+                                    color = ElectricSlateTokens.TextMuted,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
-                    }
-                }
-
-                ContainerTab.Kubernetes -> {
-                    pods.forEach { pod ->
-                        AppCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    } else {
+                        images.forEach { img ->
+                            AppCard(modifier = Modifier.fillMaxWidth()) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
+                                    Column {
                                         Text(
-                                            text = pod.name,
+                                            text = img.primaryTag,
                                             fontFamily = ElmsSans,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 14.sp,
                                             color = ElectricSlateTokens.TextPrimary
                                         )
                                         Text(
-                                            text = "Namespace: ${pod.namespace} • Node: ${pod.nodeName ?: "auto"}",
-                                            fontFamily = ElmsSans,
+                                            text = "ID: ${img.shortId}",
+                                            fontFamily = FontFamily.Monospace,
                                             fontSize = 11.sp,
                                             color = ElectricSlateTokens.TextMuted
                                         )
                                     }
 
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(999.dp))
-                                            .background(if (pod.isRunning) ElectricSlateTokens.PrimaryAccent.copy(alpha = 0.15f) else ElectricSlateTokens.Destructive.copy(alpha = 0.15f))
-                                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                                    Text(
+                                        text = img.formattedSize(),
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 12.sp,
+                                        color = ElectricSlateTokens.PrimaryAccent
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ContainerTab.Kubernetes -> {
+                    if (pods.isEmpty()) {
+                        AppCard(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp, horizontal = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = "No Kubernetes Pods Found",
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = ElectricSlateTokens.TextPrimary
+                                )
+                                Text(
+                                    text = "Configure ~/.kube/config or establish a cluster proxy to inspect active namespaces and pods.",
+                                    fontFamily = ElmsSans,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.TextMuted,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        pods.forEach { pod ->
+                            AppCard(modifier = Modifier.fillMaxWidth()) {
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = pod.name,
+                                                fontFamily = ElmsSans,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp,
+                                                color = ElectricSlateTokens.TextPrimary
+                                            )
+                                            Text(
+                                                text = "Namespace: ${pod.namespace} • Node: ${pod.nodeName ?: "auto"}",
+                                                fontFamily = ElmsSans,
+                                                fontSize = 11.sp,
+                                                color = ElectricSlateTokens.TextMuted
+                                            )
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(999.dp))
+                                                .background(if (pod.isRunning) ElectricSlateTokens.PrimaryAccent.copy(alpha = 0.15f) else ElectricSlateTokens.Destructive.copy(alpha = 0.15f))
+                                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                                        ) {
+                                            Text(
+                                                text = pod.statusPhase.uppercase(),
+                                                fontFamily = ElmsSans,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 11.sp,
+                                                color = if (pod.isRunning) ElectricSlateTokens.PrimaryAccent else ElectricSlateTokens.Destructive
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = pod.statusPhase.uppercase(),
-                                            fontFamily = ElmsSans,
-                                            fontWeight = FontWeight.Bold,
+                                            text = "IP: ${pod.podIp ?: "none"}",
+                                            fontFamily = FontFamily.Monospace,
                                             fontSize = 11.sp,
-                                            color = if (pod.isRunning) ElectricSlateTokens.PrimaryAccent else ElectricSlateTokens.Destructive
+                                            color = ElectricSlateTokens.TextPrimary
+                                        )
+                                        Text(
+                                            text = "Restarts: ${pod.restartCount}",
+                                            fontFamily = ElmsSans,
+                                            fontSize = 11.sp,
+                                            color = if (pod.restartCount > 5) ElectricSlateTokens.Destructive else ElectricSlateTokens.TextMuted
                                         )
                                     }
-                                }
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "IP: ${pod.podIp ?: "none"}",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 11.sp,
-                                        color = ElectricSlateTokens.TextPrimary
-                                    )
-                                    Text(
-                                        text = "Restarts: ${pod.restartCount}",
-                                        fontFamily = ElmsSans,
-                                        fontSize = 11.sp,
-                                        color = if (pod.restartCount > 5) ElectricSlateTokens.Destructive else ElectricSlateTokens.TextMuted
-                                    )
                                 }
                             }
                         }

@@ -75,6 +75,29 @@ object SnippetInterpolationEngine {
     }
 
     /**
+     * Interpolates context variables while masking sensitive vault secrets
+     * (e.g. {{vault_secret:key}} -> [SECRET:key]) for safe terminal viewport display and logging.
+     */
+    fun interpolateMasked(template: String, context: Context): String {
+        if (!template.contains("{{")) return template
+
+        return TOKEN_REGEX.replace(template) { matchResult ->
+            val token = matchResult.groupValues[1].trim()
+
+            when {
+                token.startsWith("vault_secret:", ignoreCase = true) -> {
+                    val secretKey = token.substringAfter("vault_secret:").trim()
+                    "[SECRET:$secretKey]"
+                }
+                else -> {
+                    // Standard interpolation for non-secret context tokens
+                    interpolate(matchResult.value, context)
+                }
+            }
+        }
+    }
+
+    /**
      * Extracts all unfilled variable tokens found in a template.
      */
     fun extractTokens(template: String): List<String> {

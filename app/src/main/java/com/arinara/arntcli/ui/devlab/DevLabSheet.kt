@@ -53,6 +53,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -726,19 +727,46 @@ fun DevLabSheet(
                         }
                     }
 
-                    // Peripherals Listing
-                    blePeripherals.forEach { device ->
-                        AppListItem(
-                            title = device.displayName,
-                            subtitle = "${device.address} • RSSI ${device.rssi} dBm (${device.signalQualityPercent()}%)",
-                            leadingIcon = Icons.Outlined.Bluetooth,
-                            leadingIconTint = if (device.isConnected) ElectricSlateTokens.PrimaryAccent else ElectricSlateTokens.TextMuted,
-                            action = if (device.isConnected) AppListItemAction.Chevron else null,
-                            onClick = {
-                                if (device.isConnected) bleEngine.disconnectDevice()
-                                else bleEngine.connectDevice(device)
+                    // Peripherals Listing & Empty State
+                    if (blePeripherals.isEmpty()) {
+                        AppCard(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp, horizontal = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = if (bleScanning) "Scanning for BLE Peripherals..." else "No BLE Peripherals Discovered",
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = ElectricSlateTokens.TextPrimary
+                                )
+                                Text(
+                                    text = if (bleScanning) "Listening for nearby Bluetooth Low Energy advertisements..." else "Tap Scan to detect nearby BLE beacons, GATT peripherals, and sensors.",
+                                    fontFamily = ElmsSans,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.TextMuted,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                        )
+                        }
+                    } else {
+                        blePeripherals.forEach { device ->
+                            AppListItem(
+                                title = device.displayName,
+                                subtitle = "${device.address} • RSSI ${device.rssi} dBm (${device.signalQualityPercent()}%)",
+                                leadingIcon = Icons.Outlined.Bluetooth,
+                                leadingIconTint = if (device.isConnected) ElectricSlateTokens.PrimaryAccent else ElectricSlateTokens.TextMuted,
+                                action = if (device.isConnected) AppListItemAction.Chevron else null,
+                                onClick = {
+                                    if (device.isConnected) bleEngine.disconnectDevice()
+                                    else bleEngine.connectDevice(device)
+                                }
+                            )
+                        }
                     }
 
                     // GATT Services Inspector Card

@@ -60,6 +60,7 @@ fun ContainerLogsSheet(
     modifier: Modifier = Modifier
 ) {
     var activeFilter by remember { mutableStateOf(LogFilter.All) }
+    var showClearConfirm by remember(visible) { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
     val filteredLogs = remember(logs, activeFilter) {
@@ -109,11 +110,29 @@ fun ContainerLogsSheet(
                     )
                 }
 
-                AppButton(
-                    text = "Clear",
-                    variant = AppButtonVariant.Secondary,
-                    onClick = onClearLogs
-                )
+                if (!showClearConfirm) {
+                    AppButton(
+                        text = "Clear",
+                        variant = AppButtonVariant.Secondary,
+                        onClick = { showClearConfirm = true }
+                    )
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        AppButton(
+                            text = "Cancel",
+                            variant = AppButtonVariant.Secondary,
+                            onClick = { showClearConfirm = false }
+                        )
+                        AppButton(
+                            text = "Confirm",
+                            variant = AppButtonVariant.Destructive,
+                            onClick = {
+                                onClearLogs()
+                                showClearConfirm = false
+                            }
+                        )
+                    }
+                }
             }
 
             Box(

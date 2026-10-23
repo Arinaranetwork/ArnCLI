@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import com.arinara.arntcli.ui.components.presets.AppBottomSheet
 import com.arinara.arntcli.ui.components.presets.AppButton
 import com.arinara.arntcli.ui.components.presets.AppButtonVariant
+import com.arinara.arntcli.ui.components.presets.AppNoticeBanner
+import com.arinara.arntcli.ui.components.presets.AppNoticeVariant
 import com.arinara.arntcli.ui.components.presets.AppPillChip
 import com.arinara.arntcli.ui.model.HostItem
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
@@ -78,6 +80,13 @@ fun AddHostSheet(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            AppNoticeBanner(
+                visible = errorMessage != null,
+                message = errorMessage ?: "",
+                variant = AppNoticeVariant.ERROR,
+                onDismiss = { errorMessage = null }
+            )
+
             Text(
                 text = "Host Label",
                 fontFamily = ElmsSans,
@@ -137,7 +146,10 @@ fun AddHostSheet(
             ) {
                 BasicTextField(
                     value = address,
-                    onValueChange = { address = it },
+                    onValueChange = {
+                        address = it
+                        errorMessage = null
+                    },
                     singleLine = true,
                     textStyle = TextStyle(
                         fontFamily = FontFamily.Monospace,

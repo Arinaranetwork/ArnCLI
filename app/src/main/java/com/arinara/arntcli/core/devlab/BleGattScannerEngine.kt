@@ -89,11 +89,21 @@ class BleGattScannerEngine {
 
     fun startScan() {
         _isScanning.value = true
-        loadSamplePeripherals()
+        _peripherals.value = emptyList()
     }
 
     fun stopScan() {
         _isScanning.value = false
+    }
+
+    fun addDiscoveredPeripheral(peripheral: BlePeripheral) {
+        _peripherals.update { list ->
+            if (list.none { it.address == peripheral.address }) {
+                list + peripheral
+            } else {
+                list.map { if (it.address == peripheral.address) peripheral else it }
+            }
+        }
     }
 
     fun connectDevice(peripheral: BlePeripheral) {
@@ -108,16 +118,6 @@ class BleGattScannerEngine {
         _connectedDevice.value = null
         _services.value = emptyList()
         _peripherals.update { list -> list.map { it.copy(isConnected = false) } }
-    }
-
-    private fun loadSamplePeripherals() {
-        val sample = listOf(
-            BlePeripheral("AA:BB:CC:11:22:33", "ESP32-S3-Sensors", -54, listOf("180A", "181A", "FFE0"), 0x02E5),
-            BlePeripheral("DD:EE:FF:44:55:66", "Nordic-nRF52840", -62, listOf("180F", "180A"), 0x0059),
-            BlePeripheral("11:22:33:AA:BB:CC", "Apple AirTag Beacon", -78, listOf("1800"), 0x004C),
-            BlePeripheral("44:55:66:DD:EE:FF", "BME680-WeatherStation", -48, listOf("181A", "180F"), null)
-        )
-        _peripherals.value = sample
     }
 
     private fun loadGattServices(peripheral: BlePeripheral) {

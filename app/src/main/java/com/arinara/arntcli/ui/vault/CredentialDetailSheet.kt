@@ -78,6 +78,7 @@ fun CredentialDetailSheet(
     val vaultEngine = remember { VaultEngine() }
     var isSecretVisible by remember(credential.id) { mutableStateOf(false) }
     var isCopied by remember(credential.id) { mutableStateOf(false) }
+    var showDeleteConfirm by remember(visible, credential.id) { mutableStateOf(false) }
 
     val formattedDate = remember(credential.createdAt) {
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
@@ -328,16 +329,59 @@ fun CredentialDetailSheet(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Delete Action Button
-            AppButton(
-                text = "Delete Credential",
-                leadingIcon = Icons.Outlined.Delete,
-                variant = AppButtonVariant.Destructive,
-                onClick = {
-                    onDeleteCredential(credential)
-                    onDismiss()
+            // Delete Action & Confirmation Container
+            if (!showDeleteConfirm) {
+                AppButton(
+                    text = "Delete Credential",
+                    leadingIcon = Icons.Outlined.Delete,
+                    variant = AppButtonVariant.Destructive,
+                    onClick = { showDeleteConfirm = true }
+                )
+            } else {
+                AppCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    isGlow = true
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Permanently delete \"${credential.title}\"?",
+                            fontFamily = ElmsSans,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = ElectricSlateTokens.Destructive
+                        )
+                        Text(
+                            text = "This credential will be purged from the on-device vault. This action cannot be undone.",
+                            fontFamily = ElmsSans,
+                            fontSize = 12.sp,
+                            color = ElectricSlateTokens.TextMuted
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AppButton(
+                                text = "Cancel",
+                                variant = AppButtonVariant.Secondary,
+                                modifier = Modifier.weight(1f),
+                                onClick = { showDeleteConfirm = false }
+                            )
+                            AppButton(
+                                text = "Confirm Delete",
+                                variant = AppButtonVariant.Destructive,
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    onDeleteCredential(credential)
+                                    onDismiss()
+                                }
+                            )
+                        }
+                    }
                 }
-            )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
