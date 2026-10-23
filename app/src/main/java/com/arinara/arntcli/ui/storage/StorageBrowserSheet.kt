@@ -27,17 +27,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.CloudDownload
-import androidx.compose.material.icons.outlined.CloudQueue
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.InsertDriveFile
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,49 +46,93 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arinara.arntcli.core.storage.StorageEngine
 import com.arinara.arntcli.core.storage.StorageNode
 import com.arinara.arntcli.core.storage.StorageType
+import com.arinara.arntcli.core.terminal.BuiltinToolbox
 import com.arinara.arntcli.ui.components.presets.AppBottomSheet
 import com.arinara.arntcli.ui.components.presets.AppButton
 import com.arinara.arntcli.ui.components.presets.AppButtonVariant
 import com.arinara.arntcli.ui.components.presets.AppCard
 import com.arinara.arntcli.ui.components.presets.AppListItem
 import com.arinara.arntcli.ui.components.presets.AppListItemAction
-import com.arinara.arntcli.ui.components.presets.AppPillChip
 import com.arinara.arntcli.ui.components.presets.BottomClearanceSpacer
 import com.arinara.arntcli.ui.theme.ElectricSlateTokens
 import com.arinara.arntcli.ui.theme.ElmsSans
 import com.arinara.arntcli.ui.theme.jigglePressClickable
+import java.io.File
 
 /**
- * StorageBrowserSheet - Multi-protocol cloud & NAS remote storage explorer.
+ * StorageBrowserSheet - Real on-device Workspace (~) File Explorer.
+ * Browses, previews, copies, and manages real files inside the persistent shell home directory.
  */
 @Composable
 fun StorageBrowserSheet(
     visible: Boolean,
     onDismiss: () -> Unit,
+    rootDirectory: File? = null,
     modifier: Modifier = Modifier
 ) {
-    val engine = remember { StorageEngine(StorageType.Smb) }
-    val currentType by engine.storageType.collectAsState()
-    val currentPath by engine.currentPath.collectAsState()
-    val nodes by engine.nodes.collectAsState()
-    val searchQuery by engine.searchQuery.collectAsState()
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val homeDir = remember(rootDirectory, context) {
+        (rootDirectory ?: File(context.filesDir, "home")).apply {
+            mkdirs()
+            BuiltinToolbox.ensureWorkspaceSeeded(this)
+        }
+    }
 
-    var selectedNode by remember { mutableStateOf<StorageNode?>(null) }
-    var downloadStatus by remember { mutableStateOf<String?>(null) }
+    var currentDir by remember(homeDir) { mutableStateOf(homeDir) }
+    var searchQuery by remember { mutableStateOf("") }
+    var refreshTrigger by remember { mutableIntStateOf(0) }
+    var selectedFile by remember { mutableStateOf<File?>(null) }
+    var statusBanner by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            refreshTrigger += 1
+        }
+    }
+
+    val nodes = remember(currentDir, refreshTrigger) {
+        val children = currentDir.listFiles()?.toList().orEmpty()
+        children
+            .sortedWith(compareByDescending<File> { it.isDirectory }.thenBy { it.name.lowercase() })
+            .map { file ->
+                val mode = (if (file.canRead()) 292 else 0) or
+                    (if (file.canWrite()) 128 else 0) or
+                    (if (file.canExecute() || file.isDirectory) 73 else 0)
+                StorageNode(
+                    id = file.absolutePath,
+                    name = file.name,
+                    path = file.absolutePath,
+                    sizeBytes = if (file.isDirectory) 0L else file.length().coerceAtLeast(0L),
+                    isDirectory = file.isDirectory,
+                    storageType = StorageType.Smb,
+                    permissionsOctal = mode,
+                    lastModified = file.lastModified()
+                )
+            }
+    }
 
     val filteredNodes = remember(nodes, searchQuery) {
         if (searchQuery.isBlank()) nodes
         else nodes.filter { it.name.contains(searchQuery.trim(), ignoreCase = true) }
     }
+
+    val relativePath = remember(currentDir, homeDir) {
+        val rel = currentDir.absolutePath.removePrefix(homeDir.absolutePath).replace('\\', '/')
+        if (rel.isEmpty()) "~" else "~$rel"
+    }
+    val canGoUp = currentDir.absolutePath != homeDir.absolutePath && currentDir.parentFile != null
 
     AppBottomSheet(
         visible = visible,
@@ -106,9 +151,9 @@ fun StorageBrowserSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Remote Storage Explorer",
+                        text = "Workspace File Explorer",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -116,7 +161,7 @@ fun StorageBrowserSheet(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = engine.currentUri(),
+                        text = currentDir.absolutePath,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Normal,
                         fontSize = 11.sp,
@@ -127,28 +172,14 @@ fun StorageBrowserSheet(
                 }
 
                 AppButton(
-                    text = "Close",
+                    text = "Refresh",
+                    leadingIcon = Icons.Outlined.Refresh,
                     variant = AppButtonVariant.Secondary,
-                    onClick = onDismiss
+                    onClick = {
+                        refreshTrigger += 1
+                        statusBanner = null
+                    }
                 )
-            }
-
-            // Protocol Selector
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(StorageType.values()) { type ->
-                    AppPillChip(
-                        label = type.displayName,
-                        isSelected = currentType == type,
-                        onClick = {
-                            engine.setStorageType(type)
-                            selectedNode = null
-                            downloadStatus = null
-                        }
-                    )
-                }
             }
 
             // Breadcrumbs & Search Row
@@ -162,18 +193,21 @@ fun StorageBrowserSheet(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .background(if (currentPath != "/") ElectricSlateTokens.SurfaceElevated else ElectricSlateTokens.SurfacePanel)
+                        .background(if (canGoUp) ElectricSlateTokens.SurfaceElevated else ElectricSlateTokens.SurfacePanel)
                         .border(1.dp, ElectricSlateTokens.BorderSubtle, CircleShape)
                         .jigglePressClickable {
-                            engine.cdUp()
-                            selectedNode = null
+                            if (canGoUp) {
+                                currentDir = currentDir.parentFile ?: homeDir
+                                selectedFile = null
+                                statusBanner = null
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBack,
                         contentDescription = "Parent Directory",
-                        tint = if (currentPath != "/") ElectricSlateTokens.TextPrimary else ElectricSlateTokens.TextMuted,
+                        tint = if (canGoUp) ElectricSlateTokens.TextPrimary else ElectricSlateTokens.TextMuted,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -201,7 +235,7 @@ fun StorageBrowserSheet(
                         )
                         BasicTextField(
                             value = searchQuery,
-                            onValueChange = { engine.setSearchQuery(it) },
+                            onValueChange = { searchQuery = it },
                             singleLine = true,
                             textStyle = TextStyle(
                                 fontFamily = ElmsSans,
@@ -213,7 +247,7 @@ fun StorageBrowserSheet(
                             decorationBox = { inner ->
                                 if (searchQuery.isEmpty()) {
                                     Text(
-                                        text = "Filter files in current folder...",
+                                        text = "Filter workspace files...",
                                         fontFamily = ElmsSans,
                                         fontSize = 12.sp,
                                         color = ElectricSlateTokens.TextMuted
@@ -235,10 +269,19 @@ fun StorageBrowserSheet(
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = "Path: $currentPath (${filteredNodes.size} items)",
+                    text = "Path: $relativePath (${filteredNodes.size} items)",
                     fontFamily = FontFamily.Monospace,
                     fontSize = 11.sp,
-                    color = ElectricSlateTokens.TextMuted
+                    color = ElectricSlateTokens.PrimaryAccent
+                )
+            }
+
+            statusBanner?.let { msg ->
+                Text(
+                    text = msg,
+                    fontFamily = ElmsSans,
+                    fontSize = 12.sp,
+                    color = ElectricSlateTokens.PrimaryAccent
                 )
             }
 
@@ -260,7 +303,7 @@ fun StorageBrowserSheet(
                             color = ElectricSlateTokens.TextPrimary
                         )
                         Text(
-                            text = "No remote objects or files found under this path.",
+                            text = "Create files from the terminal using touch, mkdir, npm, pip, or git clone.",
                             fontFamily = ElmsSans,
                             fontSize = 12.sp,
                             color = ElectricSlateTokens.TextMuted
@@ -284,72 +327,113 @@ fun StorageBrowserSheet(
                         leadingIconTint = iconTint,
                         action = if (node.isDirectory) AppListItemAction.Chevron else null,
                         onClick = {
-                            if (node.isDirectory) {
-                                engine.cd(node.name)
-                                selectedNode = null
+                            val targetFile = File(node.path)
+                            if (targetFile.isDirectory) {
+                                currentDir = targetFile
+                                selectedFile = null
+                                statusBanner = null
                             } else {
-                                selectedNode = node
-                                downloadStatus = null
+                                selectedFile = targetFile
+                                statusBanner = null
                             }
                         }
                     )
                 }
             }
 
-            // File Details Inspector Card (when regular file is selected)
-            selectedNode?.let { node ->
-                AppCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    isGlow = true
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "File Details: ${node.name}",
-                                fontFamily = ElmsSans,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = ElectricSlateTokens.TextPrimary
-                            )
-                            Text(
-                                text = node.formattedSize(),
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = ElectricSlateTokens.PrimaryAccent
-                            )
+            // File Details & Live Content Preview Card (when regular file is selected)
+            selectedFile?.let { file ->
+                if (file.exists() && file.isFile) {
+                    val previewText = remember(file, refreshTrigger) {
+                        try {
+                            file.readText(Charsets.UTF_8).take(1500)
+                        } catch (e: Exception) {
+                            "[Binary or unreadable file: ${e.message}]"
                         }
+                    }
 
-                        Text(
-                            text = "Full Path: ${node.path}",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                            color = ElectricSlateTokens.TextMuted
-                        )
-                        if (node.etag != null) {
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        isGlow = true
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = file.name,
+                                    fontFamily = ElmsSans,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = ElectricSlateTokens.TextPrimary
+                                )
+                                Text(
+                                    text = "${file.length()} B",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = ElectricSlateTokens.PrimaryAccent
+                                )
+                            }
+
                             Text(
-                                text = "ETag: ${node.etag}",
+                                text = file.absolutePath,
                                 fontFamily = FontFamily.Monospace,
                                 fontSize = 11.sp,
                                 color = ElectricSlateTokens.TextMuted
                             )
-                        }
 
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        AppButton(
-                            text = if (downloadStatus != null) "Downloaded" else "Download via SAF",
-                            leadingIcon = if (downloadStatus != null) Icons.Outlined.Check else Icons.Outlined.CloudDownload,
-                            variant = AppButtonVariant.Primary,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                downloadStatus = "Queued for download: ${node.name}"
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(ElectricSlateTokens.SurfaceElevated)
+                                    .border(1.dp, ElectricSlateTokens.BorderSubtle, RoundedCornerShape(12.dp))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = previewText.ifEmpty { "(Empty file)" },
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 11.sp,
+                                    color = ElectricSlateTokens.TextPrimary,
+                                    maxLines = 16,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
-                        )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                AppButton(
+                                    text = "Copy Content",
+                                    leadingIcon = Icons.Outlined.ContentCopy,
+                                    variant = AppButtonVariant.Primary,
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        clipboardManager.setText(AnnotatedString(previewText))
+                                        statusBanner = "Copied ${file.name} content to clipboard."
+                                    }
+                                )
+
+                                AppButton(
+                                    text = "Delete File",
+                                    leadingIcon = Icons.Outlined.DeleteOutline,
+                                    variant = AppButtonVariant.Secondary,
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        val name = file.name
+                                        if (file.delete()) {
+                                            selectedFile = null
+                                            refreshTrigger += 1
+                                            statusBanner = "Deleted $name from workspace."
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

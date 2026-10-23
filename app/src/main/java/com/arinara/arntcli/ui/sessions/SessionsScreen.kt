@@ -229,7 +229,7 @@ fun SessionsScreen(
         )
 
         Text(
-            text = "Remote Storage & Desktops",
+            text = "Workspace Files & Storage",
             fontFamily = ElmsSans,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -237,21 +237,12 @@ fun SessionsScreen(
         )
 
         AppListItem(
-            title = "Cloud & NAS Storage Explorer",
-            subtitle = "Access SMB 2/3 shares, AWS S3 buckets, and WebDAV",
-            leadingIcon = Icons.Outlined.CloudQueue,
+            title = "Workspace File Explorer (~)",
+            subtitle = "Browse, preview, copy, and manage files in your persistent home directory",
+            leadingIcon = Icons.Outlined.Storage,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = onOpenStorageClick
-        )
-
-        AppListItem(
-            title = "Remote Desktop (VNC / RDP)",
-            subtitle = "Virtual trackpad controller with mobile keyboard macros",
-            leadingIcon = Icons.Outlined.DesktopWindows,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = onOpenDesktopClick
         )
 
         BottomClearanceSpacer()

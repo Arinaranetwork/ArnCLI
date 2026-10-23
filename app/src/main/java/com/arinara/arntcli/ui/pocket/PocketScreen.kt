@@ -159,7 +159,7 @@ fun PocketScreen(
 
         AppListItem(
             title = "Protocol & API Lab",
-            subtitle = "REST/GraphQL, WebSocket, MQTT broker & BLE GATT",
+            subtitle = "Interactive HTTP/REST, GraphQL & WebSocket live client",
             leadingIcon = Icons.Outlined.DeveloperMode,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
@@ -167,21 +167,12 @@ fun PocketScreen(
         )
 
         AppListItem(
-            title = "Server Health & Watchdogs",
-            subtitle = "Agentless Linux /proc telemetry, uptime probes & SSL expiry",
+            title = "System Telemetry & Watchdogs",
+            subtitle = "Live CPU/RAM/Storage metrics, TCP/HTTP uptime probes & SSL expiry",
             leadingIcon = Icons.Outlined.Speed,
             leadingIconTint = ElectricSlateTokens.PrimaryAccent,
             action = AppListItemAction.Chevron,
             onClick = { onToolSelected("telemetry") }
-        )
-
-        AppListItem(
-            title = "Containers & Kubernetes",
-            subtitle = "Docker Remote API, Podman libpod & Kube pods explorer",
-            leadingIcon = Icons.Outlined.Layers,
-            leadingIconTint = ElectricSlateTokens.PrimaryAccent,
-            action = AppListItemAction.Chevron,
-            onClick = { onToolSelected("containers") }
         )
 
         BottomClearanceSpacer()

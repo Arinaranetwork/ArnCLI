@@ -92,15 +92,17 @@ class LocalProcessEngine(
         private const val PWD_MARKER_PREFIX = "__ARN_PWD__:"
         private const val MAX_HISTORY_ENTRIES = 500
 
-        val BUILTIN_COMMANDS = listOf(
-            "cd", "pwd", "export", "unset", "env", "printenv",
-            "history", "which", "type", "help", "clear", "ll", "la"
-        )
+        val BUILTIN_COMMANDS = (
+            listOf(
+                "cd", "pwd", "export", "unset", "env", "printenv",
+                "history", "which", "type", "help", "clear", "ll", "la"
+            ) + BuiltinToolbox.TOOLBOX_COMMANDS
+        ).distinct()
 
         private val DEFAULT_ALIASES = mapOf(
             "ll" to "ls -la",
             "la" to "ls -a",
-            "l" to "ls -CF",
+            "l" to "ls",
             "cls" to "clear"
         )
 
@@ -170,8 +172,10 @@ class LocalProcessEngine(
                     line.startsWith("CWD:") -> {
                         val path = String(decoder.decode(line.removePrefix("CWD:")), Charsets.UTF_8)
                         val dir = File(path)
-                        if (dir.exists() && dir.isDirectory) {
+                        if (dir.exists() && dir.isDirectory && dir.canRead() && dir.absolutePath != "/") {
                             state.cwd = dir
+                        } else {
+                            state.cwd = state.homeDir
                         }
                     }
                     line.startsWith("OLDPWD:") -> {
@@ -223,7 +227,9 @@ class LocalProcessEngine(
     ): ShellSessionState {
         return sessions.getOrPut(sessionId) {
             val resolvedHome = (customHomeDir ?: defaultHomeDir).apply { mkdirs() }
+            BuiltinToolbox.ensureWorkspaceSeeded(resolvedHome)
             val resolvedTmp = File(resolvedHome, ".tmp").apply { mkdirs() }
+            val binPath = File(resolvedHome, "bin").absolutePath
             ShellSessionState(
                 sessionId = sessionId,
                 homeDir = resolvedHome,
@@ -232,6 +238,10 @@ class LocalProcessEngine(
                 initialEnv = initialEnv
             ).also { created ->
                 loadPersistedStateInto(created, initialEnv)
+                val currentPath = created.env["PATH"] ?: "/system/bin:/bin"
+                if (!currentPath.contains(binPath)) {
+                    created.env["PATH"] = "$binPath:$currentPath"
+                }
             }
         }
     }
@@ -314,11 +324,7 @@ class LocalProcessEngine(
 
         val aliasExpanded = if (DEFAULT_ALIASES.containsKey(firstToken)) {
             val replacement = DEFAULT_ALIASES.getValue(firstToken)
-            if (isWindowsShell() && replacement.startsWith("ls")) {
-                "dir" + rest
-            } else {
-                replacement + rest
-            }
+            replacement + rest
         } else {
             trimmed
         }
@@ -507,32 +513,39 @@ class LocalProcessEngine(
 
             "help" -> {
                 val helpLines = listOf(
-                    "ArnCLI Stateful Shell (${shellExecutable})",
+                    "ArnCLI Stateful Shell & Toolbox (${shellExecutable})",
                     "Home Directory : ${state.homeDir.absolutePath}",
                     "Working Dir    : ${state.cwd.absolutePath}",
                     "",
-                    "Built-in Commands:",
-                    "  cd [dir|-|~]       Change working directory (persists across commands & restarts)",
-                    "  pwd                Print current working directory",
-                    "  export KEY=VAL     Set persistent session environment variable",
-                    "  unset KEY          Remove session environment variable",
-                    "  env / printenv     List active session environment variables",
-                    "  history [-c]       View or clear session command history",
-                    "  which / type <cmd> Locate command binary or built-in definition",
-                    "  clear              Clear terminal scrollback buffer",
-                    "  ll / la            Aliases for ls -la and ls -a",
+                    "File & Archive Commands:",
+                    "  ls, ll, la, tree          List files & directory hierarchy",
+                    "  cd, pwd, mkdir, touch     Navigate & create directories/files",
+                    "  cat, head, tail, grep, wc Read & search file contents",
+                    "  cp, mv, rm [-rf], find    Copy, move, delete & search files",
+                    "  zip [-r] <out.zip> <src>  Create ZIP archive",
+                    "  unzip [-l] <in.zip>       Extract or list ZIP archive",
                     "",
-                    "Interactive Controls:",
-                    "  UP / DOWN Arrows   Cycle through command history",
-                    "  LEFT / RIGHT       Move cursor within command input",
-                    "  TAB                Autocomplete commands and file paths",
-                    "  ^C / Stop Button   Terminate running foreground process",
-                    "  CTRL + L / U / W   Clear screen / clear line / delete previous word"
+                    "Package & Runtime Commands:",
+                    "  pkg list | install <pkg>  Install CLI packages (nodejs, python, git, ...)",
+                    "  node <file.js> | -e ..    Run JavaScript with Node.js v20.17.0 runtime",
+                    "  npm init -y | install <p> Initialize package.json & fetch from npmjs.org",
+                    "  python <file.py> | -c ..  Run Python 3.12 scripts & expressions",
+                    "  pip list | install <mod>  Fetch & install Python packages from pypi.org",
+                    "  git init | status | clone Clone GitHub repositories & inspect status",
+                    "  jq <file.json>            Pretty-print & validate JSON",
+                    "  sha256sum, md5sum, base64 Compute file hashes & Base64",
+                    "",
+                    "Network & System Diagnostics:",
+                    "  curl [-I|-o] <url>        HTTP/HTTPS request & file download",
+                    "  wget <url>                Download file to current directory",
+                    "  dig / nslookup <domain>   Resolve DNS A/AAAA records",
+                    "  nmap <host> | nc <h> <p>  Scan TCP ports & test sockets",
+                    "  ip addr | ifconfig | free Inspect network interfaces & RAM"
                 )
                 ShellResult(0, helpLines, emptyList())
             }
 
-            else -> null
+            else -> BuiltinToolbox.executeIfSupported(cmd, args, state)
         }
     }
 

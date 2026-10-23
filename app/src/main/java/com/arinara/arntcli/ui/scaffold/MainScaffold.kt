@@ -230,9 +230,10 @@ fun MainScaffold(
                         cwd = processEngine.getFormattedPromptCwd("session-1"),
                         history = processEngine.getHistory("session-1"),
                         lines = listOf(
-                            "ArnCLI Stateful Shell (${processEngine.shellExecutable})",
-                            "Writable Home: ${sandboxHomeDir.absolutePath}",
-                            "Type 'help' for built-in commands, aliases, and key shortcuts."
+                            "ArnCLI Persistent Developer Shell (${processEngine.shellExecutable})",
+                            "Workspace (~): ${sandboxHomeDir.absolutePath}",
+                            "Toolchain: pkg, node, npm, npx, python, pip, git, curl, wget, zip, unzip",
+                            "Shell persists until deleted. Deleting a shell preserves all ~/ files & packages."
                         )
                     )
                 )
@@ -835,10 +836,11 @@ fun MainScaffold(
             }
         )
 
-        // Remote Storage Explorer Bottom Sheet
+        // Workspace File Explorer (~) Bottom Sheet
         StorageBrowserSheet(
             visible = isStorageBrowserVisible,
-            onDismiss = { isStorageBrowserVisible = false }
+            onDismiss = { isStorageBrowserVisible = false },
+            rootDirectory = sandboxHomeDir
         )
 
         // Remote Desktop (VNC / RDP) Viewer Bottom Sheet

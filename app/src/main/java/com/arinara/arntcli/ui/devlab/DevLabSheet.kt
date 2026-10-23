@@ -148,7 +148,7 @@ fun DevLabSheet(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "REST, WebSocket, MQTT & BLE Workbench",
+                text = "Live HTTP / REST & WebSocket Network Workbench",
                 fontFamily = ElmsSans,
                 fontSize = 12.sp,
                 color = ElectricSlateTokens.TextMuted
@@ -173,22 +173,6 @@ fun DevLabSheet(
                         isSelected = activeTab == DevLabTab.WebSocket,
                         leadingIcon = Icons.Outlined.SyncAlt,
                         onClick = { activeTab = DevLabTab.WebSocket }
-                    )
-                }
-                item {
-                    AppPillChip(
-                        label = "MQTT Broker",
-                        isSelected = activeTab == DevLabTab.Mqtt,
-                        leadingIcon = Icons.Outlined.Hub,
-                        onClick = { activeTab = DevLabTab.Mqtt }
-                    )
-                }
-                item {
-                    AppPillChip(
-                        label = "BLE Scanner",
-                        isSelected = activeTab == DevLabTab.Ble,
-                        leadingIcon = Icons.Outlined.Bluetooth,
-                        onClick = { activeTab = DevLabTab.Ble }
                     )
                 }
             }

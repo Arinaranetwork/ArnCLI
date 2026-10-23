@@ -100,14 +100,14 @@ fun TerminalScreen(
     val quickCommands = remember {
         listOf(
             "help",
-            "ll",
-            "pwd",
-            "env",
+            "ls -la",
+            "pkg list",
+            "node -v",
+            "python --version",
+            "git status",
             "ip addr",
-            "ping -c 4 1.1.1.1",
-            "ps -A",
+            "free",
             "df -h",
-            "uname -a",
             "clear"
         )
     }
@@ -165,7 +165,7 @@ fun TerminalScreen(
                     )
 
                     Text(
-                        text = "Spawn a stateful local shell with writable home directory or connect to a registered host.",
+                        text = "Spawn a persistent local shell. Installed packages (node, npm, python, git) and files in ~/ are preserved even when a shell is deleted.",
                         fontFamily = ElmsSans,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
@@ -409,7 +409,7 @@ fun TerminalScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Close",
+                                    text = "Delete Shell",
                                     fontFamily = ElmsSans,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 11.sp,
@@ -608,7 +608,7 @@ fun TerminalScreen(
                                                 } else if (isAltLatched) {
                                                     "ALT latched (press b, f, or arrow)..."
                                                 } else {
-                                                    "Enter command (cd, ll, export, help)..."
+                                                    "Enter command (ls, pkg, node, npm, python, git, help)..."
                                                 },
                                                 fontFamily = FontFamily.Monospace,
                                                 fontWeight = FontWeight.Normal,
