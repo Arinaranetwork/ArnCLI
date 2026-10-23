@@ -44,18 +44,36 @@ fun TerminalKeyBar(
     onSendRawKey: (String) -> Unit,
     onInsertText: (String) -> Unit,
     onOpenAutomation: () -> Unit = {},
+    ctrlLatchedExternal: Boolean? = null,
+    onCtrlLatchedChange: ((Boolean) -> Unit)? = null,
+    altLatchedExternal: Boolean? = null,
+    onAltLatchedChange: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    var isCtrlLatched by remember { mutableStateOf(false) }
-    var isAltLatched by remember { mutableStateOf(false) }
+    var internalCtrlLatched by remember { mutableStateOf(false) }
+    var internalAltLatched by remember { mutableStateOf(false) }
+
+    val isCtrlLatched = ctrlLatchedExternal ?: internalCtrlLatched
+    val isAltLatched = altLatchedExternal ?: internalAltLatched
+
+    val setCtrlLatched: (Boolean) -> Unit = { newValue ->
+        internalCtrlLatched = newValue
+        onCtrlLatchedChange?.invoke(newValue)
+    }
+    val setAltLatched: (Boolean) -> Unit = { newValue ->
+        internalAltLatched = newValue
+        onAltLatchedChange?.invoke(newValue)
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
             .background(ElectricSlateTokens.SurfacePanel)
             .border(
                 width = 1.dp,
-                color = ElectricSlateTokens.BorderSubtle
+                color = ElectricSlateTokens.BorderSubtle,
+                shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 8.dp, vertical = 6.dp)
             .horizontalScroll(rememberScrollState()),
@@ -66,29 +84,33 @@ fun TerminalKeyBar(
         KeyChip(
             label = "CTRL",
             isLatched = isCtrlLatched,
-            onClick = { isCtrlLatched = !isCtrlLatched }
+            onClick = { setCtrlLatched(!isCtrlLatched) }
         )
 
         // Sticky ALT Key
         KeyChip(
             label = "ALT",
             isLatched = isAltLatched,
-            onClick = { isAltLatched = !isAltLatched }
+            onClick = { setAltLatched(!isAltLatched) }
         )
 
         // ESC Key
         KeyChip(
             label = "ESC",
-            onClick = { onSendRawKey(TerminalAnsiKeyEngine.ESCAPE) }
+            onClick = {
+                setCtrlLatched(false)
+                setAltLatched(false)
+                onSendRawKey(TerminalAnsiKeyEngine.ESCAPE)
+            }
         )
 
-        // TAB Key
+        // TAB Key (Path & Command Autocomplete)
         KeyChip(
             label = "TAB",
             onClick = { onSendRawKey(TerminalAnsiKeyEngine.TAB) }
         )
 
-        // Directional Arrows
+        // Directional Arrows (History & Cursor Navigation)
         KeyChip(
             label = "▲",
             onClick = { onSendRawKey(TerminalAnsiKeyEngine.ARROW_UP) }
@@ -106,10 +128,24 @@ fun TerminalKeyBar(
             onClick = { onSendRawKey(TerminalAnsiKeyEngine.ARROW_RIGHT) }
         )
 
+        // Quick Line Navigation (Home / End)
+        KeyChip(
+            label = "HOME",
+            onClick = { onSendRawKey(TerminalAnsiKeyEngine.CTRL_A) }
+        )
+        KeyChip(
+            label = "END",
+            onClick = { onSendRawKey(TerminalAnsiKeyEngine.CTRL_E) }
+        )
+
         // Fast Shell Operators
         KeyChip(
             label = "|",
             onClick = { onInsertText(" | ") }
+        )
+        KeyChip(
+            label = "&&",
+            onClick = { onInsertText(" && ") }
         )
         KeyChip(
             label = "~",
@@ -123,19 +159,39 @@ fun TerminalKeyBar(
             label = "-",
             onClick = { onInsertText("-") }
         )
+        KeyChip(
+            label = "$",
+            onClick = { onInsertText("$") }
+        )
 
         // Quick Signal Pills
         KeyChip(
             label = "^C",
-            onClick = { onSendRawKey(TerminalAnsiKeyEngine.CTRL_C) }
-        )
-        KeyChip(
-            label = "^D",
-            onClick = { onSendRawKey(TerminalAnsiKeyEngine.CTRL_D) }
+            onClick = {
+                setCtrlLatched(false)
+                onSendRawKey(TerminalAnsiKeyEngine.CTRL_C)
+            }
         )
         KeyChip(
             label = "^L",
-            onClick = { onSendRawKey(TerminalAnsiKeyEngine.CTRL_L) }
+            onClick = {
+                setCtrlLatched(false)
+                onSendRawKey(TerminalAnsiKeyEngine.CTRL_L)
+            }
+        )
+        KeyChip(
+            label = "^U",
+            onClick = {
+                setCtrlLatched(false)
+                onSendRawKey(TerminalAnsiKeyEngine.CTRL_U)
+            }
+        )
+        KeyChip(
+            label = "^D",
+            onClick = {
+                setCtrlLatched(false)
+                onSendRawKey(TerminalAnsiKeyEngine.CTRL_D)
+            }
         )
 
         // Workflow Automation Trigger Pill

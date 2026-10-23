@@ -48,8 +48,17 @@ import com.arinara.arntcli.ui.model.Space
 import com.arinara.arntcli.ui.model.TerminalSession
 import com.arinara.arntcli.ui.model.VaultCredential
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+import java.net.InetSocketAddress
+import java.net.Socket
 import com.arinara.arntcli.core.net.DiscoveredHost
 import com.arinara.arntcli.core.terminal.LocalProcessEngine
 import com.arinara.arntcli.ui.automation.WorkflowRunnerSheet
@@ -128,11 +137,18 @@ fun MainScaffold(
     var isContainersVisible by remember { mutableStateOf(false) }
     var isWorkflowSheetVisible by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val sandboxHomeDir = remember(context) {
+        File(context.filesDir, "home").apply { mkdirs() }
+    }
     val coroutineScope = rememberCoroutineScope()
     val activeSessionJobs = remember { mutableMapOf<String, Job>() }
-    val processEngine = remember { LocalProcessEngine() }
+    val processEngine = remember(sandboxHomeDir) {
+        LocalProcessEngine(workingDirectory = sandboxHomeDir)
+    }
     val tunnelEngine = remember { PortForwardingEngine() }
     var tunnelRules by remember { mutableStateOf(emptyList<TunnelRule>()) }
+    var sessionSequence by remember { mutableStateOf(2) }
 
     val initialSpaces = remember {
         listOf(
@@ -152,7 +168,25 @@ fun MainScaffold(
     var selectedSpaceId by remember { mutableStateOf("default") }
     var hosts by remember { mutableStateOf(emptyList<HostItem>()) }
     var credentials by remember { mutableStateOf(emptyList<VaultCredential>()) }
-    var sessions by remember { mutableStateOf(emptyList<TerminalSession>()) }
+    var sessions by remember {
+        processEngine.getOrCreateSession("session-1", customHomeDir = sandboxHomeDir)
+        mutableStateOf(
+            listOf(
+                TerminalSession(
+                    id = "session-1",
+                    title = "local:sh",
+                    shell = processEngine.shellExecutable,
+                    isConnected = true,
+                    cwd = processEngine.getFormattedPromptCwd("session-1"),
+                    lines = listOf(
+                        "ArnCLI Stateful Shell (${processEngine.shellExecutable})",
+                        "Writable Home: ${sandboxHomeDir.absolutePath}",
+                        "Type 'help' for built-in commands, aliases, and key shortcuts."
+                    )
+                )
+            )
+        )
+    }
 
     val activeSpace = spaces.firstOrNull { it.id == selectedSpaceId } ?: spaces.first()
     val spaceHosts = hosts.filter { it.spaceId == selectedSpaceId }
@@ -271,62 +305,109 @@ fun MainScaffold(
                         activeSpaceName = activeSpace.name,
                         sessions = sessions,
                         onStartLocalShell = {
+                            val newId = "session-$sessionSequence"
+                            sessionSequence += 1
+                            processEngine.getOrCreateSession(newId, customHomeDir = sandboxHomeDir)
                             val newSession = TerminalSession(
-                                id = "session-${sessions.size + 1}",
+                                id = newId,
                                 title = "local:sh",
                                 shell = processEngine.shellExecutable,
                                 isConnected = true,
+                                cwd = processEngine.getFormattedPromptCwd(newId),
                                 lines = listOf(
-                                    "ArnCLI local shell (${processEngine.shellExecutable})"
+                                    "ArnCLI Stateful Shell (${processEngine.shellExecutable})",
+                                    "Writable Home: ${sandboxHomeDir.absolutePath}",
+                                    "Type 'help' for built-in commands, aliases, and key shortcuts."
                                 )
                             )
                             sessions = sessions + newSession
                         },
                         onExecuteCommand = { sessionId, cmd ->
-                            if (cmd == "clear") {
+                            val normalized = cmd.trim()
+                            if (normalized == "clear" || normalized == "cls") {
                                 sessions = sessions.map { s ->
-                                    if (s.id == sessionId) s.copy(lines = emptyList()) else s
+                                    if (s.id == sessionId) {
+                                        s.copy(
+                                            lines = emptyList(),
+                                            cwd = processEngine.getFormattedPromptCwd(sessionId),
+                                            history = processEngine.getHistory(sessionId)
+                                        )
+                                    } else s
                                 }
                             } else {
-                                val targetSession = sessions.find { it.id == sessionId }
-                                val isLocal = targetSession?.title?.startsWith("local:") == true
-
-                                if (isLocal) {
-                                    sessions = sessions.map { s ->
-                                        if (s.id == sessionId) s.copy(lines = (s.lines + "$ $cmd").takeLast(500)) else s
-                                    }
-                                    activeSessionJobs[sessionId]?.cancel()
-                                    activeSessionJobs[sessionId] = coroutineScope.launch {
-                                        try {
-                                            processEngine.executeStreaming(cmd).collect { outputLine ->
-                                                sessions = sessions.map { s ->
-                                                    if (s.id == sessionId) {
-                                                        s.copy(lines = (s.lines + outputLine).takeLast(500))
-                                                    } else s
-                                                }
-                                            }
-                                        } catch (e: Exception) {
-                                            val err = "Error: ${e.message ?: "Execution failed"}"
+                                val currentCwd = processEngine.getFormattedPromptCwd(sessionId)
+                                sessions = sessions.map { s ->
+                                    if (s.id == sessionId) {
+                                        s.copy(
+                                            lines = (s.lines + "$currentCwd $ $normalized").takeLast(1000),
+                                            isRunning = true
+                                        )
+                                    } else s
+                                }
+                                activeSessionJobs[sessionId]?.cancel()
+                                activeSessionJobs[sessionId] = coroutineScope.launch {
+                                    try {
+                                        processEngine.executeStreaming(normalized, sessionId).collect { outputLine ->
                                             sessions = sessions.map { s ->
                                                 if (s.id == sessionId) {
-                                                    s.copy(lines = (s.lines + err).takeLast(500))
+                                                    s.copy(
+                                                        lines = (s.lines + outputLine).takeLast(1000),
+                                                        cwd = processEngine.getFormattedPromptCwd(sessionId)
+                                                    )
                                                 } else s
                                             }
                                         }
-                                    }
-                                } else {
-                                    val remoteNotice = listOf(
-                                        "$ $cmd",
-                                        "[Session] Standby: Remote channel to ${targetSession?.shell} is awaiting network route.",
-                                        "[Session] To execute shell commands directly on this device, switch to a local:sh session tab."
-                                    )
-                                    sessions = sessions.map { s ->
-                                        if (s.id == sessionId) s.copy(lines = (s.lines + remoteNotice).takeLast(500)) else s
+                                    } catch (_: CancellationException) {
+                                        // Handled by interrupt
+                                    } catch (e: Exception) {
+                                        val err = "Error: ${e.message ?: "Execution failed"}"
+                                        sessions = sessions.map { s ->
+                                            if (s.id == sessionId) {
+                                                s.copy(lines = (s.lines + err).takeLast(1000))
+                                            } else s
+                                        }
+                                    } finally {
+                                        val updatedCwd = processEngine.getFormattedPromptCwd(sessionId)
+                                        val updatedHistory = processEngine.getHistory(sessionId)
+                                        sessions = sessions.map { s ->
+                                            if (s.id == sessionId) {
+                                                s.copy(
+                                                    cwd = updatedCwd,
+                                                    history = updatedHistory,
+                                                    isRunning = false
+                                                )
+                                            } else s
+                                        }
                                     }
                                 }
                             }
                         },
+                        onInterruptSession = { sessionId ->
+                            val wasRunning = processEngine.killActiveProcess(sessionId)
+                            activeSessionJobs[sessionId]?.cancel()
+                            activeSessionJobs.remove(sessionId)
+                            val interruptLine = if (wasRunning) "^C [Process terminated]" else "^C"
+                            sessions = sessions.map { s ->
+                                if (s.id == sessionId) {
+                                    s.copy(
+                                        lines = (s.lines + interruptLine).takeLast(1000),
+                                        isRunning = false
+                                    )
+                                } else s
+                            }
+                        },
+                        onTabComplete = { sessionId, currentInput ->
+                            processEngine.completeInput(currentInput, sessionId)
+                        },
+                        onAppendLines = { sessionId, extraLines ->
+                            sessions = sessions.map { s ->
+                                if (s.id == sessionId) {
+                                    s.copy(lines = (s.lines + extraLines).takeLast(1000))
+                                } else s
+                            }
+                        },
                         onCloseSession = { sessionId ->
+                            processEngine.closeSession(sessionId)
                             activeSessionJobs[sessionId]?.cancel()
                             activeSessionJobs.remove(sessionId)
                             sessions = sessions.filterNot { it.id == sessionId }
@@ -346,25 +427,88 @@ fun MainScaffold(
                         onOpenDesktopClick = { isDesktopViewerVisible = true },
                         onAddHostClick = { isAddHostVisible = true },
                         onHostClick = { host ->
+                            val sessionId = "session-${host.id}-${sessionSequence++}"
+                            processEngine.getOrCreateSession(
+                                sessionId = sessionId,
+                                customHomeDir = sandboxHomeDir,
+                                initialEnv = mapOf(
+                                    "HOST" to host.address,
+                                    "PORT" to host.port.toString(),
+                                    "TARGET_USER" to host.username,
+                                    "PROTOCOL" to host.protocol
+                                )
+                            )
+
                             val bannerLines = mutableListOf(
-                                "ArnCLI Remote Connection [Space: ${activeSpace.name}]",
-                                "Host: ${host.name} (${host.address}:${host.port}) via ${host.protocol}"
+                                "ArnCLI Host Session [Space: ${activeSpace.name}]",
+                                "Target: ${host.name} (${host.address}:${host.port}) via ${host.protocol}",
+                                "Bound Env: \$HOST=${host.address}  \$PORT=${host.port}  \$TARGET_USER=${host.username}"
                             )
                             if (!host.jumpHost.isNullOrBlank()) {
-                                bannerLines.add("[ProxyJump] Bastion proxy configured: ${host.jumpHost}")
+                                bannerLines.add("[ProxyJump] Bastion proxy: ${host.jumpHost}")
                             }
-                            bannerLines.add("Credentials: ${host.username}")
-                            bannerLines.add("[Info] Remote session registered. Forward sockets via Port Forwarding or WireGuard tunnel.")
+                            bannerLines.add("Probing TCP socket ${host.address}:${host.port}...")
 
                             val session = TerminalSession(
-                                id = "session-${host.id}",
+                                id = sessionId,
                                 title = "${host.protocol.lowercase()}:${host.name}",
                                 shell = "${host.protocol} ${host.username}@${host.address}:${host.port}",
                                 isConnected = true,
-                                lines = bannerLines
+                                cwd = processEngine.getFormattedPromptCwd(sessionId),
+                                lines = bannerLines,
+                                hostAddress = host.address,
+                                hostPort = host.port,
+                                hostUser = host.username,
+                                hostProtocol = host.protocol
                             )
                             sessions = sessions + session
                             currentDestination = MainDestination.Terminal
+
+                            // Perform real TCP handshake & banner read on IO dispatcher
+                            coroutineScope.launch {
+                                val probeResult = withContext(Dispatchers.IO) {
+                                    val startMs = System.currentTimeMillis()
+                                    try {
+                                        Socket().use { socket ->
+                                            socket.soTimeout = 2500
+                                            socket.connect(InetSocketAddress(host.address, host.port), 3000)
+                                            val rtt = System.currentTimeMillis() - startMs
+                                            val serverBanner = try {
+                                                val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8))
+                                                if (socket.getInputStream().available() > 0 || host.protocol.equals("SSH", ignoreCase = true)) {
+                                                    reader.readLine()?.take(120)
+                                                } else null
+                                            } catch (_: Exception) {
+                                                null
+                                            }
+                                            val lines = mutableListOf(
+                                                "[Connected] TCP ${host.address}:${host.port} reachable (${rtt} ms)"
+                                            )
+                                            if (!serverBanner.isNullOrBlank()) {
+                                                lines.add("[Remote Banner] $serverBanner")
+                                            }
+                                            lines.add("Shell ready. Run commands with \$HOST (${host.address}) and \$PORT (${host.port}).")
+                                            Pair(true, lines)
+                                        }
+                                    } catch (e: Exception) {
+                                        Pair(
+                                            false,
+                                            listOf(
+                                                "[Warning] TCP ${host.address}:${host.port} unreachable: ${e.message ?: "Connection timed out"}",
+                                                "Local diagnostic shell active. Use 'ping -c 4 \$HOST' or 'traceroute' to inspect route."
+                                            )
+                                        )
+                                    }
+                                }
+                                sessions = sessions.map { s ->
+                                    if (s.id == sessionId) {
+                                        s.copy(
+                                            isConnected = probeResult.first,
+                                            lines = (s.lines + probeResult.second).takeLast(1000)
+                                        )
+                                    } else s
+                                }
+                            }
                         }
                     )
                 }

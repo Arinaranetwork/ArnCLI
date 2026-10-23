@@ -16,9 +16,10 @@ Deliver the flagship 1.0.0 Public Launch release of ArnTCLI: a tactile, offline-
 
 ## Features
 ### Macro Key Bar & Interactive Modifiers
-- Sticky latches for `CTRL` and `ALT` sending ASCII control bytes (`Ctrl+C` = `\u0003`, `Ctrl+D` = `\u0004`, `Ctrl+Z` = `\u001A`).
-- Single-tap `ESC` (`\u001b`), `TAB` (`\t`), and VT100 directional arrows (`\u001b[A`, `\u001b[B`, `\u001b[C`, `\u001b[D`).
-- Quick macro pills: `docker ps`, `kubectl get pods`, `systemctl status`, `htop`, `tail -n 50`.
+- Sticky latches for `CTRL` and `ALT` sending ASCII control bytes (`Ctrl+C` = `\u0003`, `Ctrl+D` = `\u0004`, `Ctrl+Z` = `\u001A`) and intercepting typed characters (`Ctrl+C`, `Ctrl+L`, `Ctrl+U`, `Ctrl+A`, `Ctrl+E`, `Ctrl+W`).
+- Single-tap `ESC` (`\u001b`), `TAB` (`\t` path/command completion), and VT100 directional arrows (`\u001b[A`/`\u001b[B` for command history navigation, `\u001b[C`/`\u001b[D` for cursor movement).
+- Quick macro pills and stateful built-in commands (`cd`, `pwd`, `export`, `unset`, `env`, `history`, `help`, `clear`, `ll`, `la`).
+- Per-session writable sandbox home directory, persistent working directory (`cwd`), environment variables, and active process cancellation (`SIGKILL`/`SIGINT`).
 
 ### Snippet Parameter Interpolation
 - Pattern resolver replacing template tokens with active session host properties and Vault credential secrets in-memory.
