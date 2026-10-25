@@ -1,0 +1,6 @@
+# Anchor - ArnTCLI 0.2.1
+Status: Finished    Opened: 2026-10-19    Finished: 2026-10-19 
+
+| ID    | Request                                                                                        | Phase | Acceptance                                                                                                                                                                                              | Status   | Evidence                                                        |
+|-------|------------------------------------------------------------------------------------------------|-------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-----------------------------------------------------------------|
+| A-001 | get rid all of unnceserary description like "100% offline" and other that are not immporttant for user to read | 2     | Remove redundant marketing descriptions, filler text (100% offline, Zero Cloud & Telemetry Guarantee, design system notes), and unnecessary status cards across UI screens while maintaining 0 Android.md violations | Verified | `verifyAndroidRules` (0 violations), `testDebugUnitTest` (passed), UI inspection |

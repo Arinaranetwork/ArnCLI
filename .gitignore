@@ -1,0 +1,33 @@
+*.iml
+.gradle
+.kotlin/
+.idea/
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+app/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Generated output & release binaries
+/Output/Build
+/Output/Logs
+/Output/Reports
+/Output/Exports
+
+# Security & Scratch
+.env
+.env.*
+!.env.Example
+scratch/
+*.idsig
+*.log
+.mailbox/
