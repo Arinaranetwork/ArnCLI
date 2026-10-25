@@ -34,6 +34,9 @@ Deliver the flagship 1.0.0 Public Launch release of ArnTCLI: a tactile, offline-
 ### Persistent Workspace & Session State
 - Atomic JSON persistence (`WorkspaceStateStore`) saving and restoring Spaces, active Space selection, Hosts, encrypted Vault Credentials, Port Forwarding Tunnel Rules, and Terminal Sessions (including scrollback lines, active tab index, `cwd`, exported `env` variables, and command `history`) across app restarts.
 
+### Official ArnTCLI Raster Launcher Icon
+- Uses the exact supplied raster icon `Assets/Icons/photo_6262632732634584663_y.jpg` across all `mipmap-*` launcher densities and adaptive icon layers without SVG or vector recreation.
+
 ## Logic Notes
 - Control byte mapping strictly adheres to standard VT100 / XTerm terminal specifications.
 - Secrets retrieved from `VaultEngine` are resolved in-memory during execution and never written to plain history logs.
