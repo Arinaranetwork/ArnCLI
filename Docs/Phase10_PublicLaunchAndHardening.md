@@ -48,3 +48,8 @@ Deliver the flagship 1.0.0 Public Launch release of ArnTCLI: a tactile, offline-
 - Full unit test coverage passing in `./gradlew testDebugUnitTest`.
 - Automated design token verification passing with 0 violations in `./gradlew verifyAndroidRules`.
 - Production release configuration ready for standalone packaging.
+
+### Version 1.0.4 Brand, Package & Repository Alignment
+- Explicit package name / application ID standardization to `com.arinara.arntcli` (`arntcli`).
+- Comprehensive brand normalization across UI titles, settings screens, shell toolbox prompts, and release artifact packaging (`ArnTCLI_1.0.4_Beta.apk`).
+- Migration of GitHub distribution repository to `arntcli`.

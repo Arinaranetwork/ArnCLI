@@ -48,10 +48,11 @@ class WorkspaceStateStore(
         get() = File(stateDirectory, "workspace_state.arnstate")
 
     val defaultBackupFile: File
-        get() = File(stateDirectory, "arncli_profile_backup.arnstate")
+        get() = File(stateDirectory, "arntcli_profile_backup.arnstate")
 
     companion object {
-        private const val HEADER_MAGIC = "ARNCLI_STATE_V1"
+        private const val HEADER_MAGIC = "ARNTCLI_STATE_V1"
+        private const val LEGACY_HEADER_MAGIC = "ARNCLI_STATE_V1"
         private const val MAX_PERSISTED_LINES_PER_SESSION = 500
         private const val MAX_PERSISTED_HISTORY_PER_SESSION = 300
 
@@ -156,7 +157,7 @@ class WorkspaceStateStore(
      */
     fun deserialize(payload: String): WorkspaceSnapshot? {
         val lines = payload.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
-        if (lines.isEmpty() || lines.first() != HEADER_MAGIC) return null
+        if (lines.isEmpty() || (lines.first() != HEADER_MAGIC && lines.first() != LEGACY_HEADER_MAGIC)) return null
 
         var selectedSpaceId = "default"
         var selectedSessionIndex = 0

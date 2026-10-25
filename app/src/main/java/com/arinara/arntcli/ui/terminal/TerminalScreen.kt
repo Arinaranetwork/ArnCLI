@@ -435,7 +435,7 @@ fun TerminalScreen(
                         ) {
                             if (currentSession.lines.isEmpty()) {
                                 Text(
-                                    text = "ArnCLI Terminal Environment [Space: $activeSpaceName]",
+                                    text = "ArnTCLI Terminal Environment [Space: $activeSpaceName]",
                                     fontFamily = FontFamily.Monospace,
                                     fontWeight = FontWeight.Normal,
                                     fontSize = 12.sp,

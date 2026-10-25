@@ -513,7 +513,7 @@ class LocalProcessEngine(
 
             "help" -> {
                 val helpLines = listOf(
-                    "ArnCLI Stateful Shell & Toolbox (${shellExecutable})",
+                    "ArnTCLI Stateful Shell & Toolbox (${shellExecutable})",
                     "Home Directory : ${state.homeDir.absolutePath}",
                     "Working Dir    : ${state.cwd.absolutePath}",
                     "",

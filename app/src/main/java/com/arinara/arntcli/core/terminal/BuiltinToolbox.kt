@@ -72,19 +72,19 @@ object BuiltinToolbox {
     fun ensureWorkspaceSeeded(homeDir: File) {
         try {
             homeDir.mkdirs()
-            val marker = File(homeDir, ".arncli_seeded_v2")
+            val marker = File(homeDir, ".arntcli_seeded_v3")
             val workspaceDir = File(homeDir, "workspace").apply { mkdirs() }
             val scriptsDir = File(homeDir, "scripts").apply { mkdirs() }
             val downloadsDir = File(homeDir, "downloads").apply { mkdirs() }
             val binDir = File(homeDir, "bin").apply { mkdirs() }
-            val pkgDir = File(homeDir, ".arncli_packages").apply { mkdirs() }
+            val pkgDir = File(homeDir, ".arntcli_packages").apply { mkdirs() }
 
             if (!marker.exists()) {
                 val readmeFile = File(homeDir, "README.txt")
                 if (!readmeFile.exists()) {
                     readmeFile.writeText(
                         """
-                        Welcome to ArnCLI Persistent Workspace!
+                        Welcome to ArnTCLI Persistent Workspace!
                         =======================================
                         Your home directory (~) and installed packages persist across sessions.
                         Closing a shell tab only closes that tab; your files & packages stay safe.
@@ -108,7 +108,7 @@ object BuiltinToolbox {
                 if (!helloPy.exists()) {
                     helloPy.writeText(
                         """
-                        print("ArnCLI Python 3.12 Runtime Active!")
+                        print("ArnTCLI Python 3.12 Runtime Active!")
                         for i in range(1, 4):
                             print(f"Step {i}: Workspace ready")
                         """.trimIndent() + "\n",
@@ -120,7 +120,7 @@ object BuiltinToolbox {
                 if (!appJs.exists()) {
                     appJs.writeText(
                         """
-                        console.log("ArnCLI Node.js v20.17.0 Runtime Active!");
+                        console.log("ArnTCLI Node.js v20.17.0 Runtime Active!");
                         console.log("Working directory:", process.cwd());
                         console.log("21 * 2 =", 21 * 2);
                         """.trimIndent() + "\n",
@@ -131,7 +131,7 @@ object BuiltinToolbox {
                 val configJson = File(workspaceDir, "config.json")
                 if (!configJson.exists()) {
                     configJson.writeText(
-                        "{\n  \"app\": \"ArnCLI\",\n  \"version\": \"1.0.2\",\n  \"runtimes\": [\"nodejs\", \"python3\", \"git\"]\n}\n",
+                        "{\n  \"app\": \"ArnTCLI\",\n  \"version\": \"1.0.4\",\n  \"runtimes\": [\"nodejs\", \"python3\", \"git\"]\n}\n",
                         Charsets.UTF_8
                     )
                 }
@@ -199,7 +199,7 @@ object BuiltinToolbox {
             "nmap" -> handleNmap(args)
             "ip", "ifconfig" -> handleNetworkInterfaces(cmd, args)
             "free" -> handleFree()
-            "whoami" -> ShellResult(0, listOf(state.env["USER"] ?: "arncli"), emptyList())
+            "whoami" -> ShellResult(0, listOf(state.env["USER"] ?: "arntcli"), emptyList())
             "uname" -> handleUname(args)
             "date" -> ShellResult(0, listOf(SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US).format(Date())), emptyList())
             "pkg", "apt", "apk", "install" -> handlePackageManager(cmd, args, state)
@@ -297,7 +297,7 @@ object BuiltinToolbox {
         val perms = "$typeChar$r$w$x$r-$x$r-$x"
         val sizeStr = formatHumanSize(if (file.isDirectory) 4096L else file.length()).padStart(7)
         val timeStr = df.format(Date(file.lastModified()))
-        return "$perms  1 arncli arncli $sizeStr $timeStr $displayName"
+        return "$perms  1 arntcli arntcli $sizeStr $timeStr $displayName"
     }
 
     private fun handleTree(args: List<String>, state: ShellSessionState): ShellResult {
@@ -938,7 +938,7 @@ object BuiltinToolbox {
                 requestMethod = method
                 connectTimeout = 6000
                 readTimeout = 6000
-                setRequestProperty("User-Agent", "ArnCLI-curl/8.9.1")
+                setRequestProperty("User-Agent", "ArnTCLI-curl/8.9.1")
                 if (bodyData != null) {
                     doOutput = true
                     outputStream.use { it.write(bodyData.toByteArray(Charsets.UTF_8)) }
@@ -1055,7 +1055,7 @@ object BuiltinToolbox {
             5432 to "postgresql", 6379 to "redis", 8080 to "http-proxy", 8443 to "https-alt"
         )
         val out = mutableListOf(
-            "Starting ArnCLI Nmap 7.95 scan on $host",
+            "Starting ArnTCLI Nmap 7.95 scan on $host",
             "PORT     STATE  SERVICE"
         )
         var openCount = 0
@@ -1178,7 +1178,7 @@ object BuiltinToolbox {
         val osVer = System.getProperty("os.version") ?: "Android"
         val osArch = System.getProperty("os.arch") ?: "aarch64"
         return if (args.contains("-a")) {
-            ShellResult(0, listOf("$osName arncli $osVer SMP PREEMPT $osArch Android"), emptyList())
+            ShellResult(0, listOf("$osName arntcli $osVer SMP PREEMPT $osArch Android"), emptyList())
         } else {
             ShellResult(0, listOf(osName), emptyList())
         }
@@ -1190,7 +1190,7 @@ object BuiltinToolbox {
      * so closing a shell tab never deletes installed packages.
      */
     private fun handlePackageManager(cmd: String, args: List<String>, state: ShellSessionState): ShellResult {
-        val pkgDir = File(state.homeDir, ".arncli_packages").apply { mkdirs() }
+        val pkgDir = File(state.homeDir, ".arntcli_packages").apply { mkdirs() }
         val installedFile = File(pkgDir, "installed.txt")
         val installedSet = if (installedFile.exists()) {
             installedFile.readLines(Charsets.UTF_8).map { it.trim() }.filter { it.isNotEmpty() }.toMutableSet()
@@ -1206,7 +1206,7 @@ object BuiltinToolbox {
                 return ShellResult(
                     0,
                     listOf(
-                        "ArnCLI Package & Runtime Manager",
+                        "ArnTCLI Package & Runtime Manager",
                         "Usage: install <package...>  OR  pkg install <package...>",
                         "Core Runtimes : nodejs (v20.17.0), npm (10.8.2), python (3.12.0), pip (24.2), git (2.46.0)",
                         "Utilities     : zip, unzip, curl, wget, jq, dig, nmap, netcat, tree, openssh"
@@ -1223,7 +1223,7 @@ object BuiltinToolbox {
 
         return when (subCmd) {
             "list", "list-installed", "search" -> {
-                val lines = mutableListOf("ArnCLI Persistent Workspace Packages (~/.arncli_packages):")
+                val lines = mutableListOf("ArnTCLI Persistent Workspace Packages (~/.arntcli_packages):")
                 for ((name, info) in CORE_PACKAGES) {
                     val (ver, desc) = info
                     val status = if (installedSet.contains(name)) "[installed]" else "[available]"
@@ -1295,7 +1295,7 @@ object BuiltinToolbox {
                             out.add("Installed '$norm' into persistent ~/bin/$norm.")
                         } else {
                             installedSet.add(norm)
-                            out.add("Registered '$norm' in persistent workspace environment (~/.arncli_packages).")
+                            out.add("Registered '$norm' in persistent workspace environment (~/.arntcli_packages).")
                         }
                     }
                 }
@@ -1316,7 +1316,7 @@ object BuiltinToolbox {
                 ShellResult(
                     0,
                     listOf(
-                        "ArnCLI Package Manager (pkg / apt / apk / install)",
+                        "ArnTCLI Package Manager (pkg / apt / apk / install)",
                         "Commands:",
                         "  pkg install nodejs    Install Node.js v20.17.0 & npm 10.8.2",
                         "  pkg install python    Install Python 3.12.0 & pip 24.2",
@@ -1339,7 +1339,7 @@ object BuiltinToolbox {
             return ShellResult(
                 0,
                 listOf(
-                    "Welcome to Node.js v20.17.0 (ArnCLI Embedded JS Engine).",
+                    "Welcome to Node.js v20.17.0 (ArnTCLI Embedded JS Engine).",
                     "Usage:",
                     "  node -v                         Print Node.js version",
                     "  node -e \"console.log(2 + 2)\"    Evaluate inline JavaScript",
@@ -1458,12 +1458,12 @@ object BuiltinToolbox {
 
             "init" -> {
                 val pkgJsonFile = File(state.cwd, "package.json")
-                val dirName = state.cwd.name.lowercase().replace(Regex("[^a-z0-9-_]"), "-").ifBlank { "arncli-app" }
+                val dirName = state.cwd.name.lowercase().replace(Regex("[^a-z0-9-_]"), "-").ifBlank { "arntcli-app" }
                 val content = """
                     {
                       "name": "$dirName",
                       "version": "1.0.0",
-                      "description": "ArnCLI Node.js project",
+                      "description": "ArnTCLI Node.js project",
                       "main": "index.js",
                       "scripts": {
                         "start": "node index.js",
@@ -1493,7 +1493,7 @@ object BuiltinToolbox {
                     val pkgName = rawPkg.substringBefore('@').ifBlank { rawPkg }
                     val meta = fetchNpmPackageMeta(pkgName)
                     val version = meta?.first ?: "1.0.0"
-                    val description = meta?.second ?: "Installed via ArnCLI npm"
+                    val description = meta?.second ?: "Installed via ArnTCLI npm"
                     val tarballUrl = meta?.third
 
                     val pkgFolder = File(nodeModules, pkgName).apply { mkdirs() }
@@ -1560,7 +1560,7 @@ object BuiltinToolbox {
                 ShellResult(
                     0,
                     listOf(
-                        "npm 10.8.2 (Node.js v20.17.0) - ArnCLI Package Manager",
+                        "npm 10.8.2 (Node.js v20.17.0) - ArnTCLI Package Manager",
                         "Usage:",
                         "  npm init -y            Create package.json in current directory",
                         "  npm install <pkg...>   Download & install packages from registry.npmjs.org",
@@ -1699,7 +1699,7 @@ object BuiltinToolbox {
     private fun updatePackageJsonDependency(pkgJsonFile: File, fallbackName: String, depName: String, depVer: String) {
         try {
             if (!pkgJsonFile.exists()) {
-                val dirName = fallbackName.lowercase().replace(Regex("[^a-z0-9-_]"), "-").ifBlank { "arncli-app" }
+                val dirName = fallbackName.lowercase().replace(Regex("[^a-z0-9-_]"), "-").ifBlank { "arntcli-app" }
                 pkgJsonFile.writeText(
                     "{\n  \"name\": \"$dirName\",\n  \"version\": \"1.0.0\",\n  \"dependencies\": {\n    \"$depName\": \"$depVer\"\n  }\n}\n",
                     Charsets.UTF_8
@@ -1724,7 +1724,7 @@ object BuiltinToolbox {
      * Python Package Installer (`pip` / `pip3`) connected to `https://pypi.org/pypi/<pkg>/json`.
      */
     private fun handlePip(args: List<String>, state: ShellSessionState): ShellResult {
-        val pkgDir = File(state.homeDir, ".arncli_packages").apply { mkdirs() }
+        val pkgDir = File(state.homeDir, ".arntcli_packages").apply { mkdirs() }
         val pipFile = File(pkgDir, "pip_packages.txt")
         val installedMap = linkedMapOf(
             "pip" to "24.2",
@@ -1934,7 +1934,7 @@ object BuiltinToolbox {
                 ShellResult(
                     0,
                     listOf(
-                        "git version 2.46.0 (ArnCLI Workspace Git)",
+                        "git version 2.46.0 (ArnTCLI Workspace Git)",
                         "Commands: git init | git clone <https://github.com/owner/repo> | git status"
                     ),
                     emptyList()
@@ -1948,7 +1948,7 @@ object BuiltinToolbox {
             return ShellResult(
                 0,
                 listOf(
-                    "Python 3.12.0 (ArnCLI Embedded Runtime) on Android",
+                    "Python 3.12.0 (ArnTCLI Embedded Runtime) on Android",
                     "Usage:",
                     "  python -c \"print('Hello', 2 + 2)\"         Execute inline Python code",
                     "  python workspace/hello.py                 Execute a Python script file",

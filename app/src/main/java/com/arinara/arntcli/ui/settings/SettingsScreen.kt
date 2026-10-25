@@ -175,7 +175,7 @@ fun SettingsScreen(
         )
 
         AppListItem(
-            title = "About ArnCLI",
+            title = "About ArnTCLI",
             subtitle = "Version 1.0.2",
             leadingIcon = Icons.Outlined.Info,
             leadingIconTint = ElectricSlateTokens.TextMuted,

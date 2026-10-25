@@ -230,7 +230,7 @@ fun MainScaffold(
                         cwd = processEngine.getFormattedPromptCwd("session-1"),
                         history = processEngine.getHistory("session-1"),
                         lines = listOf(
-                            "ArnCLI Persistent Developer Shell (${processEngine.shellExecutable})",
+                            "ArnTCLI Persistent Developer Shell (${processEngine.shellExecutable})",
                             "Workspace (~): ${sandboxHomeDir.absolutePath}",
                             "Toolchain: pkg, node, npm, npx, python, pip, git, curl, wget, zip, unzip",
                             "Shell persists until deleted. Deleting a shell preserves all ~/ files & packages."
@@ -272,7 +272,7 @@ fun MainScaffold(
         AppScreen(
             topBar = {
                 AppTopBar(
-                    title = "ArnCLI",
+                    title = "ArnTCLI",
                     actions = {
                         // Space Switcher Capsule Pill
                         Box(
@@ -391,7 +391,7 @@ fun MainScaffold(
                                 isConnected = true,
                                 cwd = processEngine.getFormattedPromptCwd(newId),
                                 lines = listOf(
-                                    "ArnCLI Stateful Shell (${processEngine.shellExecutable})",
+                                    "ArnTCLI Stateful Shell (${processEngine.shellExecutable})",
                                     "Writable Home: ${sandboxHomeDir.absolutePath}",
                                     "Type 'help' for built-in commands, aliases, and key shortcuts."
                                 )
@@ -516,7 +516,7 @@ fun MainScaffold(
                             )
 
                             val bannerLines = mutableListOf(
-                                "ArnCLI Host Session [Space: ${activeSpace.name}]",
+                                "ArnTCLI Host Session [Space: ${activeSpace.name}]",
                                 "Target: ${host.name} (${host.address}:${host.port}) via ${host.protocol}",
                                 "Bound Env: \$HOST=${host.address}  \$PORT=${host.port}  \$TARGET_USER=${host.username}"
                             )

@@ -39,3 +39,9 @@ All notable changes to the ArnTCLI workstation for the 1.0 major release line.
 ## 1.0.3 - 2026-10-25
 ### Fixed
 - **Official ArnCLI Launcher Icon**: Replaced the legacy vector launcher icon with the exact raster emblem (`Assets/Icons/photo_6262632732634584663_y.jpg`) across all Android `mipmap-mdpi` through `mipmap-xxxhdpi` densities and adaptive icon layers (`ic_launcher`, `ic_launcher_round`, `ic_launcher_foreground`) with zero SVG/vector recreation.
+
+
+## 1.0.4 - 2026-10-25
+### Changed
+- **Brand & Package Alignment**: Aligned Android package name and application ID to `com.arinara.arntcli` (`arntcli`), normalized UI titles, top bars, shell prompts, and settings branding to `ArnTCLI`, and packaged `ArnTCLI_1.0.4_Beta.apk`.
+- **Repository Migration**: Transitioned GitHub distribution repository naming to `arntcli`.
