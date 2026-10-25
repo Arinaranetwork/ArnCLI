@@ -1,6 +1,6 @@
 # Release - ArnTCLI 1.0.4
 Tag: ArnTCLI_1.0.4_Beta    Stable: 
-Date: 2026-10-25    Branch: master    Commit: pending
+Date: 2026-10-25    Branch: master    Commit: 040ab60
 Banner: Assets/Banners/ArnTCLIBanner_1.0_2026-10-22.png    Changelog: Changelog/Changelog_1.0.md
 Artifacts: Output/Release/ArnTCLI_1.0.4_Beta.apk, Output/Release/ArnCLI_1.0.4_Beta.apk
 GitHub: https://github.com/Arinaranetwork/ArnCLI/releases/tag/ArnTCLI_1.0.4_Beta
